@@ -7,16 +7,21 @@ Header | Tick | Tick | Tick | ...
 
 ### Header
 
-Symbol | StartTime | Interval
+MagicNumber | Symbol | StartTime | Interval
 
-- Symbol    :: string 6 * Word8 (the symbol that ticks are for)
-- StartTime :: int 32bit (time of first tick relative to agreed on offset)
-- Interval  :: int 32bit (time between ticks in seconds)
+- MagicNumber :: Identifies file format
+- Symbol      :: Word32 (the symbol that ticks are for)
+- StartTime   :: Word32 (time of first tick relative to agreed on offset)
+- Interval    :: Word32 (time between ticks in seconds)
 
 HeaderExample:
-    
-    EURUSD|00ffad34|00000001
-    - Symbol: "EurUsd", StartTime: 16 756 020 seconds, Interval: 1 second
+assuming EurUsd code is 0x00000001
+
+   54484f52|00000001|00ffad34|00000001
+    - Magic Number: 0x54484f52 
+    - Symbol: "EurUsd"
+    - StartTime: 16 756 020 seconds
+    - Interval: 1 second
 
 ### Tick
 
