@@ -14,6 +14,7 @@ Symbol | StartTime | Interval
 - Interval  :: int 32bit (time between ticks in seconds)
 
 HeaderExample:
+    
     EURUSD|00ffad34|00000001
     - Symbol: "EurUsd", StartTime: 16 756 020 seconds, Interval: 1 second
 
