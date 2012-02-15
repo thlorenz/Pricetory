@@ -17,7 +17,8 @@ MagicNumber | Symbol | StartTime | Interval
 HeaderExample:
 assuming EurUsd code is 0x00000001
 
-   54484f52|00000001|00ffad34|00000001
+    54484f52|00000001|00ffad34|00000001
+
     - Magic Number: 0x54484f52 
     - Symbol: "EurUsd"
     - StartTime: 16 756 020 seconds
