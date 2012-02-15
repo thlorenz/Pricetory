@@ -12,8 +12,8 @@ type Rate         =  Word32
 
 data Tick = Tick TimeOffset Rate
 
-magicBytes :: L.ByteString
-magicBytes = encode (0x54484f52 :: Word32)
+magicNumber :: Word32
+magicNumber = 0x54484f52
 
 symbolMap :: [(Symbol, SymbolCode)]
 symbolMap = [ ("EURUSD", 0x00000001)
@@ -27,11 +27,7 @@ symbolMap = [ ("EURUSD", 0x00000001)
 
 createHeader :: SymbolCode -> TimeOffset -> TimeInterval -> L.ByteString
 createHeader symbol offset interval = 
-    L.concat [magicBytes, symbolBytes, offsetBytes, intervalBytes]
-    where
-        symbolBytes = encode symbol
-        offsetBytes = encode offset
-        intervalBytes = encode interval
+    (L.concat . map encode) [magicNumber, symbol, offset, interval]
 
 main = do
     let header = (createHeader 0x00000001 0x20 0x0000001)
