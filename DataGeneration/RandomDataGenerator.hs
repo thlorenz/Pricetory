@@ -2,6 +2,7 @@ import qualified Data.ByteString as S;
 import qualified Data.ByteString.Lazy as L;
 import qualified Data.Map as Map;
 import Random (randomR, RandomGen, getStdRandom)
+import Control.Monad
 import Data.Maybe
 import Data.Char (ord)
 import Data.Word
@@ -11,7 +12,7 @@ type SymbolCode   =  Word32
 type Symbol       =  String
 type TimeOffset   =  Word32
 type TimeInterval =  Word32
-type Rate         =  Int
+type Rate         =  Word32
 
 data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate }
 
@@ -42,8 +43,8 @@ writeHeader = do
     let header = (createHeader (getSymbolCode symbol) 0x20 0x0000001)       
     print $ L.unpack header
 
-nextTick ::  Tick -> Rate -> Tick
-nextTick currentTick rateDelta = Tick nextTimeOffset nextRate 
+getDeltaTick ::  Tick -> Rate -> Tick
+getDeltaTick currentTick rateDelta = Tick nextTimeOffset nextRate 
     where 
         nextTimeOffset = (+1) $ timeOffset currentTick
         nextRate = (+rateDelta) $ rate currentTick
@@ -62,8 +63,17 @@ randomRateDelta gen = (deltas !! index, nextGen)
             (replicate 2 (-3)) ++ (replicate 2 3) ++
             [4, (-4), 5, (-5)]
 
+randomizeRandomNextTick :: Tick -> IO Tick
+randomizeRandomNextTick currentTick = do
+    delta <- (getStdRandom $ randomRateDelta) 
+    return $ getDeltaTick currentTick delta
+
 main = do
-    (getStdRandom $ randomRateDelta) >>= print
+    let points = 10
+    let initialRate = 12345
+    forM [0..points] (\p -> do
+       print p)
+    return undefined
 
 
 
