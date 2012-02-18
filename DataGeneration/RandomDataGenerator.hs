@@ -1,7 +1,7 @@
 import qualified Data.ByteString as S;
 import qualified Data.ByteString.Lazy as L;
 import qualified Data.Map as Map;
-import Random (randomR, RandomGen, getStdRandom)
+import Random (randomR, RandomGen, newStdGen)
 import Control.Monad
 import Data.Maybe
 import Data.Char (ord)
@@ -55,7 +55,7 @@ randomRateDelta gen = (deltas !! index, nextGen)
         (index, nextGen)  = randomR (0, upperBound) gen 
         upperBound = (length deltas) - 1 
 
-        -- smaller rate changes should occur more often
+        -- smaller rate changes occur more often
         deltas :: [Rate]
         deltas = 
             (replicate 5 (-1)) ++ (replicate 5 1) ++
@@ -63,11 +63,19 @@ randomRateDelta gen = (deltas !! index, nextGen)
             (replicate 2 (-3)) ++ (replicate 2 3) ++
             [4, (-4), 5, (-5)]
 
-randomizeRandomNextTick :: Tick -> IO Tick
-randomizeRandomNextTick currentTick = do
-    delta <- (getStdRandom $ randomRateDelta) 
-    return $ getDeltaTick currentTick delta
+getRandomRateDeltas :: (RandomGen t) => Int -> t -> [Rate] -> [Rate]
+getRandomRateDeltas 0      gen xs = xs
+getRandomRateDeltas points gen xs =  
+    getRandomRateDeltas (points - 1) gen (delta:xs) 
+    where (delta, nextGen) = randomRateDelta gen
 
+-- getDeltas :: (RandomGen g) => g -> [Rate]
+getDeltas gen = foldl f (gen, [])
+    where 
+        f (gen, xs) = let (delta, nextGen) = randomRateDelta gen
+                      in (nextGen, delta : xs)          
+
+-- take 1000 [x | x <- generator]
 main = do
     let points = 10
     let initialRate = 12345
