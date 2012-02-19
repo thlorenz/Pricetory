@@ -14,7 +14,7 @@ type TimeOffset   =  Word32
 type TimeInterval =  Word32
 type Rate         =  Word32
 
-data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate }
+data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate } deriving Show
 
 magicNumber :: Word32
 magicNumber = 0x54484f52
@@ -63,25 +63,15 @@ randomRateDelta gen = (deltas !! index, nextGen)
             (replicate 2 (-3)) ++ (replicate 2 3) ++
             [4, (-4), 5, (-5)]
 
-getRandomRateDeltas :: (RandomGen t) => Int -> t -> [Rate] -> [Rate]
-getRandomRateDeltas 0      gen xs = xs
-getRandomRateDeltas points gen xs =  
-    getRandomRateDeltas (points - 1) gen (delta:xs) 
-    where (delta, nextGen) = randomRateDelta gen
+getTicks initialTick rateDeltas = map fst . scanl f (initialTick, rateDeltas)
+    where f (Tick timeOffset rate, x:xs) _ = (Tick (timeOffset + 1) (rate + x), xs)
 
--- getDeltas :: (RandomGen g) => g -> [Rate]
-getDeltas gen = foldl f (gen, [])
-    where 
-        f (gen, xs) = let (delta, nextGen) = randomRateDelta gen
-                      in (nextGen, delta : xs)          
-
--- take 1000 [x | x <- generator]
 main = do
     let points = 10
     let initialRate = 12345
-    forM [0..points] (\p -> do
-       print p)
-    return undefined
+    let rt = getTicks (Tick 0 initialRate) [1,2,3,4,2,1] [1..4]
+    print rt
+
 
 
 
