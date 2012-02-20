@@ -1,9 +1,20 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
+import qualified Data.ByteString.Lazy as L
+
 import Random (randomRs, RandomGen, Random, mkStdGen, newStdGen)
+
 import Data.Maybe
 import Data.Word
+import Data.Binary (encode)
+
+import System.IO
+
+import System.Console.CmdArgs
 
 import Contract.Types
-import Contract.Symbols
+import Contract.Symbols (getSymbolCode, eurusd)
+import Contract.Protocol (createFileHeader)
 
 getRandomRateDeltas :: (RandomGen g) => g -> [Rate]
 getRandomRateDeltas g = [deltas !! x | x <- indexes]
@@ -25,13 +36,47 @@ getTicks prevTick rateDeltas timeInterval = x : getTicks x (tail rateDeltas) tim
     where 
         x = getDeltaTick prevTick (head rateDeltas)
 
-        getDeltaTick currentTick rateDelta = 
+        getDeltaTick currentTick rateDelta =
                   let nextTimeOffset = (+timeInterval) $ timeOffset currentTick
                       nextRate = (+rateDelta) $ rate currentTick
                   in  Tick nextTimeOffset nextRate 
 
+encodeTick tick = L.concat [(encode $ timeOffset tick), (encode $ rate tick)]
+
+data Arguments = Arguments { symbol    :: Symbol
+                           , time      :: TimeOffset
+                           , interval  :: TimeInterval
+                           , firstRate :: Rate
+                           , points    :: Word32
+                           , directory :: FilePath
+                           } deriving (Show, Data, Typeable)
+
+-- | Defaults to EURUSD starting at 0, 1 tick/sec for a year into data directory
+arguments = Arguments 
+    { symbol = eurusd       &= typ "Symbol"       &= help "Symbol for which to generate data"
+    , time = 0              &= typ "TimeOffset"   &= help "Time of first tick"
+    , interval = 1          &= typ "TimeInterval" &= help "Seconds between ticks"
+    , firstRate = 13245     &= typ "Rate"         &= help "Rate of first tick"
+    , points = 31556926     &= typ "Int"          &= help "Number of ticks to generate"
+    , directory = "../data" &= typ "FilePath"     &= help "Directory into which to output binary file"
+    } &= summary "Random Tick Data Generator version 0.0.1"
+
 main = do
-    let initialRate = 1234500
-    let rt = take 50 $ 
-             getTicks (Tick 0 initialRate) (getRandomRateDeltas $ mkStdGen 100) 1
-    print rt
+    args <- cmdArgs arguments
+    putStrLn $ "Generating for: " ++ show args ++ "\n"
+
+    let fileName = (directory args) ++ "/" ++ (symbol args) ++ ".bin"
+
+    let header = createFileHeader (getSymbolCode $ symbol args) 
+                                  (time args) 
+                                  (interval args) 
+                                  (points args)
+
+    let encodedTicks = map encodeTick $ take (fromIntegral $ points args) $ 
+                       getTicks (Tick (time args)  $ firstRate args) 
+                                (getRandomRateDeltas $ mkStdGen 100)
+                                (interval args)
+
+    L.writeFile fileName header
+    L.appendFile fileName $ L.concat encodedTicks
+    
