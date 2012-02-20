@@ -42,7 +42,7 @@ getTicks prevTick rateDeltas timeInterval = x : getTicks x (tail rateDeltas) tim
                       nextRate = (+rateDelta) $ rate currentTick
                   in  Tick nextTimeOffset nextRate 
 
-encodeTick tick = L.concat [(encode $ timeOffset tick), (encode $ rate tick)]
+encodeTick tick = L.append (encode $ timeOffset tick) (encode $ rate tick)
 
 data Arguments = Arguments { symbol    :: Symbol
                            , time      :: TimeOffset
