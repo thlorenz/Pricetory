@@ -50,6 +50,7 @@ data Arguments = Arguments { symbol    :: Symbol
                            , firstRate :: Rate
                            , points    :: Word32
                            , directory :: FilePath
+                           , random    :: Int 
                            } deriving (Show, Data, Typeable)
 
 -- | Defaults to EURUSD starting at 0, 1 tick/sec for a year (31556926s) into data directory
@@ -60,6 +61,7 @@ arguments = Arguments
     , firstRate = 13245  &= typ "Rate"         &= help "Rate of first tick"
     , points = defPts    &= typ "Int"          &= help "Number of ticks to generate"
     , directory = defDir &= typ "FilePath"     &= help "Directory into which to output binary file"
+    , random = 0         &= typ "Int"          &= help "Seed for random number generation"
     } &= summary "Random Tick Data Generator version 0.0.1"
     where defPts = 100000 
           defDir = "/Users/thlorenz/dev/data/Pricetory"
@@ -77,7 +79,7 @@ main = do
 
     let encodedTicks = map encodeTick $ take (fromIntegral $ points args) $ 
                        getTicks (Tick (time args)  $ firstRate args) 
-                                (getRandomRateDeltas $ mkStdGen 100)
+                                (getRandomRateDeltas $ mkStdGen (random args))
                                 (interval args)
 
     L.writeFile fileName header
