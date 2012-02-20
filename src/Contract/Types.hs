@@ -8,4 +8,11 @@ type TimeOffset   =  Word32
 type TimeInterval =  Word32
 type Rate         =  Word32
 
+data Header = Header { symbol   :: SymbolCode
+                     , offset   :: TimeOffset
+                     , interval :: TimeInterval
+                     , points   :: Word32
+                     } deriving Show 
+
 data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate } deriving Show
+

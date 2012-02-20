@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
-
 import qualified Data.ByteString.Lazy as L
 
 import Random (randomRs, RandomGen, Random, mkStdGen, newStdGen)
@@ -16,6 +14,8 @@ import System.Console.CmdArgs
 import Contract.Types
 import Contract.Symbols (getSymbolCode, eurusd)
 import Contract.Protocol (createFileHeader)
+
+import qualified DataGeneration.CmdArgs as A
 
 getRandomRateDeltas :: (RandomGen g) => g -> [Rate]
 getRandomRateDeltas g = [deltas !! x | x <- indexes]
@@ -44,43 +44,23 @@ getTicks prevTick rateDeltas timeInterval = x : getTicks x (tail rateDeltas) tim
 
 encodeTick tick = L.append (encode $ timeOffset tick) (encode $ rate tick)
 
-data Arguments = Arguments { symbol    :: Symbol
-                           , time      :: TimeOffset
-                           , interval  :: TimeInterval
-                           , firstRate :: Rate
-                           , points    :: Word32
-                           , directory :: FilePath
-                           , random    :: Int 
-                           } deriving (Show, Data, Typeable)
-
--- | Defaults to EURUSD starting at 0, 1 tick/sec for a year (31556926s) into data directory
-arguments = Arguments 
-    { symbol = eurusd    &= typ "Symbol"       &= help "Symbol for which to generate data"
-    , time = 0           &= typ "TimeOffset"   &= help "Time of first tick"
-    , interval = 1       &= typ "TimeInterval" &= help "Seconds between ticks"
-    , firstRate = 13245  &= typ "Rate"         &= help "Rate of first tick"
-    , points = defPts    &= typ "Int"          &= help "Number of ticks to generate"
-    , directory = defDir &= typ "FilePath"     &= help "Directory into which to output binary file"
-    , random = 0         &= typ "Int"          &= help "Seed for random number generation"
-    } &= summary "Random Tick Data Generator version 0.0.1"
-    where defPts = 100000 
-          defDir = "/Users/thlorenz/dev/data/Pricetory"
 main = do
-    args <- cmdArgs arguments
+    args <- cmdArgs A.arguments
     putStrLn $ "Generating for: " ++ show args ++ "\n"
     startTime <- getCurrentTime
 
-    let fileName = (directory args) ++ "/" ++ (symbol args) ++ ".bin"
+    let fileName = (A.directory args) ++ "/" ++ (A.symbol args) ++ ".bin"
 
-    let header = createFileHeader (getSymbolCode $ symbol args) 
-                                  (time args) 
-                                  (interval args) 
-                                  (points args)
+    let header = createFileHeader $ 
+                 Header (getSymbolCode $ A.symbol args) 
+                        (A.time args) 
+                        (A.interval args) 
+                        (A.points args)
 
-    let encodedTicks = map encodeTick $ take (fromIntegral $ points args) $ 
-                       getTicks (Tick (time args)  $ firstRate args) 
-                                (getRandomRateDeltas $ mkStdGen (random args))
-                                (interval args)
+    let encodedTicks = map encodeTick $ take (fromIntegral $ A.points args) $ 
+                       getTicks (Tick (A.time args)  $ A.firstRate args) 
+                                (getRandomRateDeltas $ mkStdGen (A.random args))
+                                (A.interval args)
 
     L.writeFile fileName header
     L.appendFile fileName $ L.concat encodedTicks

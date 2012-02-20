@@ -11,13 +11,13 @@ import Contract.Types
 magicNumber :: Word32
 magicNumber = 0x54484f52
 
-msgHeader :: SymbolCode -> TimeOffset -> TimeInterval -> Word32 -> [Word32] 
-msgHeader symbol offset interval length =  [symbol, offset, interval, length]
+msgHeader :: Header -> [Word32] 
+msgHeader hdr = [symbol hdr, offset hdr, interval hdr, points hdr]
 
-createMsgHeader :: SymbolCode -> TimeOffset -> TimeInterval -> Word32 -> L.ByteString
-createMsgHeader symbol offset interval length = 
-    (L.concat . map encode) $ msgHeader symbol offset interval length
+createMsgHeader :: Header -> L.ByteString
+createMsgHeader hdr = (L.concat . map encode) $ msgHeader hdr
 
-createFileHeader :: SymbolCode -> TimeOffset -> TimeInterval -> Word32 -> L.ByteString
-createFileHeader symbol offset interval length = 
-    (L.concat . map encode) $ magicNumber : msgHeader symbol offset interval length
+createFileHeader :: Header -> L.ByteString
+createFileHeader hdr = (L.concat . map encode) $ magicNumber : msgHeader hdr
+
+
