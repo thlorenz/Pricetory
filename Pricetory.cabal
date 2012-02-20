@@ -1,0 +1,31 @@
+Name:                Pricetory
+-- (http://www.haskell.org/haskellwiki/Package_versioning_policy)
+Version:             0.1
+Synopsis:            Historical market prices efficient and fast
+
+-- Description:         
+
+Homepage:            https://github.com/thlorenz/Pricetory
+License:             BSD3
+License-file:        LICENSE
+Author:              Thorsten Lorenz
+Maintainer:          tlorenz@lab49.com
+Category:            Data
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+-- Extra-source-files:  
+
+Executable Pricetory
+  -- .hs or .lhs file containing the Main module.
+  -- Main-is:             
+  
+  Build-depends: binary >= 0.5, 
+                 cmdargs >= 0.9
+  
+  -- Modules not exported by this package.
+  -- Other-modules:       
+  
+  -- Extra tools (e.g. alex, hsc2hs, ...) needed to build the source.
+  -- Build-tools:         
+  

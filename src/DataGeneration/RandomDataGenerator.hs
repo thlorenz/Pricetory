@@ -35,9 +35,3 @@ main = do
     let rt = take 50 $ 
              getTicks (Tick 0 initialRate) (getRandomRateDeltas $ mkStdGen 100) 1
     print rt
-
-
-
-
-
-

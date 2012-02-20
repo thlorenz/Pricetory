@@ -13,6 +13,7 @@ magicNumber = 0x54484f52
 
 msgHeader :: SymbolCode -> TimeOffset -> TimeInterval -> Word32 -> [Word32] 
 msgHeader symbol offset interval length =  [symbol, offset, interval, length]
+
 createMsgHeader :: SymbolCode -> TimeOffset -> TimeInterval -> Word32 -> L.ByteString
 createMsgHeader symbol offset interval length = 
     (L.concat . map encode) $ msgHeader symbol offset interval length
