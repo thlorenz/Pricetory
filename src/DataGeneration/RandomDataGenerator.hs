@@ -1,7 +1,7 @@
 import qualified Data.ByteString as S;
 import qualified Data.ByteString.Lazy as L;
 import qualified Data.Map as Map;
-import Random (randomR, RandomGen, newStdGen)
+import Random (randomRs, RandomGen, Random, mkStdGen, newStdGen)
 import Control.Monad
 import Data.Maybe
 import Data.Char (ord)
@@ -43,33 +43,35 @@ writeHeader = do
     let header = (createHeader (getSymbolCode symbol) 0x20 0x0000001)       
     print $ L.unpack header
 
-getDeltaTick ::  Tick -> Rate -> Tick
-getDeltaTick currentTick rateDelta = Tick nextTimeOffset nextRate 
-    where 
-        nextTimeOffset = (+1) $ timeOffset currentTick
-        nextRate = (+rateDelta) $ rate currentTick
-
-randomRateDelta :: (RandomGen g) => g -> (Rate, g)
-randomRateDelta gen = (deltas !! index, nextGen)
+getRandomRateDeltas :: (RandomGen g) => g -> [Rate]
+getRandomRateDeltas g = map (\index -> deltas !! index) indexes
     where
-        (index, nextGen)  = randomR (0, upperBound) gen 
+        indexes = randomRs (0, upperBound) g
         upperBound = (length deltas) - 1 
 
         -- smaller rate changes occur more often
         deltas :: [Rate]
         deltas = 
+                                  (replicate 8 0) ++
             (replicate 5 (-1)) ++ (replicate 5 1) ++
             (replicate 3 (-2)) ++ (replicate 3 2) ++
             (replicate 2 (-3)) ++ (replicate 2 3) ++
             [4, (-4), 5, (-5)]
 
-getTicks initialTick rateDeltas = map fst . scanl f (initialTick, rateDeltas)
-    where f (Tick timeOffset rate, x:xs) _ = (Tick (timeOffset + 1) (rate + x), xs)
+getTicks :: Tick -> [Rate] -> TimeOffset -> [Tick]
+getTicks prevTick rateDeltas timeInterval = x : getTicks x (tail rateDeltas) timeInterval
+    where 
+        x = getDeltaTick prevTick (head rateDeltas)
+
+        getDeltaTick currentTick rateDelta = 
+                  let nextTimeOffset = (+timeInterval) $ timeOffset currentTick
+                      nextRate = (+rateDelta) $ rate currentTick
+                  in  Tick nextTimeOffset nextRate 
 
 main = do
-    let points = 10
-    let initialRate = 12345
-    let rt = getTicks (Tick 0 initialRate) [1,2,3,4,2,1] [1..4]
+    let initialRate = 1234500
+    let rt = take 500 $ 
+             getTicks (Tick 0 initialRate) (getRandomRateDeltas $ mkStdGen 100) 1
     print rt
 
 
