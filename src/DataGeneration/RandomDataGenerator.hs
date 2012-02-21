@@ -13,7 +13,7 @@ import System.Console.CmdArgs
 
 import Contract.Types
 import Contract.Symbols (getSymbolCode, eurusd)
-import Contract.Protocol (createFileHeader)
+import Contract.Protocol (encodeFileHeader)
 
 import qualified DataGeneration.CmdArgs as A
 
@@ -51,7 +51,7 @@ main = do
 
     let fileName = (A.directory args) ++ "/" ++ (A.symbol args) ++ ".bin"
 
-    let header = createFileHeader $ 
+    let header = encodeFileHeader $ 
                  Header (getSymbolCode $ A.symbol args) 
                         (A.time args) 
                         (A.interval args) 

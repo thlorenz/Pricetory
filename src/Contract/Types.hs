@@ -12,7 +12,7 @@ data Header = Header { symbol   :: SymbolCode
                      , offset   :: TimeOffset
                      , interval :: TimeInterval
                      , points   :: Word32
-                     } deriving Show 
+                     } deriving (Show, Eq)
 
 data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate } deriving Show
 
