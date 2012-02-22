@@ -3,6 +3,7 @@ import qualified Data.ByteString.Lazy as L
 import System.IO
 import Data.Word
 import Data.Maybe (fromJust)
+import Control.Monad (liftM)
 
 import Contract.Types
 import Contract.Protocol (decodeFileHeader)
@@ -18,16 +19,16 @@ dataDir = "/Users/thlorenz/dev/data/Pricetory"
 symbolName = "EURUSD"
 fileName = dataDir ++ "/" ++ symbolName ++ ".bin"
 
+-- | TODO: handle Nothing which signifies an exception
+readHeader ::  Handle -> IO Header
+readHeader fh = liftM (fromJust . decodeFileHeader) $ L.hGet fh (5 * 4) 
+
 main = do
-    hp <- openFile fileName ReadMode
-    bs <- L.hGet hp (5 * 4) 
-    print bs
-    let hdr = (fromJust . decodeFileHeader) bs
-    print hdr
-    -- putStrLn "Header" ++ (show hdr) 
+    fh <- openFile fileName ReadMode
+    print =<< readHeader fh
 
     -- hSeek hp AbsoluteSeek x
-    hClose hp
+    hClose fh
     
     putStrLn "\n--------------\nDone!"
 
