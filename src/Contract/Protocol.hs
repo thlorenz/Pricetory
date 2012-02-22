@@ -32,6 +32,13 @@ decodeFileHeader bs =
     let (x:xs) = decodeWord32s bs
     in  if x == magicNumber then Just $ headerFromWord32s xs else Nothing
 
+encodeTick :: Tick -> L.ByteString 
+encodeTick x = L.concat [encode $ timeOffset x, encode $ rate x]
+
+decodeTick :: L.ByteString -> Tick
+decodeTick = tickFromWords . decodeWord32s 
+    where tickFromWords [timeOffset, rate] = Tick timeOffset rate
+
 decodeWord32s :: L.ByteString -> [Word32]
 decodeWord32s bs = map decode (chunk32s [] bs)
     where chunk32s xs bs = if L.null bs then reverse xs
@@ -43,16 +50,28 @@ headerFromWord32s [symbol, offset, interval, points] = Header symbol offset inte
 -- ------------ TESTS -------------
 
 instance Arbitrary Header where
-    arbitrary = do symbol   <- elements [00001, 0002, 0003 ] 
-                   offset   <- elements [1, 2, 3, 4, 5]
-                   interval <- elements [1, 2, 3, 4, 5]
-                   points   <- elements [1, 2, 3, 4, 5]
+    arbitrary = do symbol   <- elements [1..5]
+                   offset   <- elements [1..5]
+                   interval <- elements [1..5]
+                   points   <- elements [1..5]
                    return $ Header symbol offset interval points
+
+instance Arbitrary Tick where
+    arbitrary = do offset   <- elements [1..5]
+                   rate     <- elements [1..5]
+                   return $ Tick offset rate
 
 prop_header_encode_decode_roundtrippable :: Header -> Property
 prop_header_encode_decode_roundtrippable hdr =
     property $ (decodeHeader . encodeHeader) hdr == hdr
 
-runTests = quickCheck prop_header_encode_decode_roundtrippable
+prop_ticks_encode_decode_roundtrippable :: Tick -> Property
+prop_ticks_encode_decode_roundtrippable tick = 
+    property $ (decodeTick . encodeTick) tick == tick
+
+runTests = do 
+    quickCheck prop_header_encode_decode_roundtrippable
+    quickCheck prop_ticks_encode_decode_roundtrippable
+
     
 main = runTests

@@ -14,5 +14,5 @@ data Header = Header { symbol   :: SymbolCode
                      , points   :: Word32
                      } deriving (Show, Eq)
 
-data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate } deriving Show
+data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate } deriving (Show, Eq)
 
