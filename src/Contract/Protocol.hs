@@ -7,10 +7,7 @@ module Contract.Protocol ( magicNumber
 
 import qualified Data.ByteString.Lazy as L;
 import qualified Data.ByteString as B;
-import Data.Bits ((.|.), shiftL)
-import Data.List (foldl')
 import Data.Binary
-import Data.Binary.Get
 
 import Contract.Types
 
@@ -18,7 +15,6 @@ import Test.QuickCheck
 
 magicNumber :: Word32
 magicNumber = 0x54484f52
-
 
 encodeHeader :: Header -> L.ByteString
 encodeHeader = L.concat . map encode . unfoldHeader
