@@ -10,6 +10,7 @@ module Contract.Protocol ( magicNumber
 import qualified Data.ByteString.Lazy as L;
 import qualified Data.ByteString as B;
 import Data.Binary
+import Data.Maybe (fromJust)
 
 import Contract.Types
 
@@ -23,7 +24,7 @@ encodeHeader = L.concat . map encode . unfoldHeader
     where unfoldHeader :: Header -> [Word32] 
           unfoldHeader hdr = [symbol hdr, offset hdr, interval hdr, points hdr]
 
-decodeHeader :: L.ByteString -> Header
+decodeHeader :: L.ByteString -> Maybe Header
 decodeHeader = headerFromWord32s . decodeWord32s
 
 encodeFileHeader :: Header -> L.ByteString
@@ -32,7 +33,7 @@ encodeFileHeader hdr = L.append (encode magicNumber) (encodeHeader hdr)
 decodeFileHeader :: L.ByteString -> Maybe Header
 decodeFileHeader bs = 
     let (x:xs) = decodeWord32s bs
-    in  if x == magicNumber then Just $ headerFromWord32s xs else Nothing
+    in  if x == magicNumber then headerFromWord32s xs else Nothing
 
 encodeTick :: Tick -> L.ByteString 
 encodeTick x = L.concat [encode $ timeOffset x, encode $ rate x]
@@ -46,8 +47,10 @@ decodeWord32s bs = map decode (chunk32s [] bs)
     where chunk32s xs bs = if L.null bs then reverse xs
                            else let (x, y) = L.splitAt 4 bs in chunk32s (x:xs) y 
 
-headerFromWord32s :: [Word32] -> Header
-headerFromWord32s [symbol, offset, interval, points] = Header symbol offset interval points
+headerFromWord32s :: [Word32] -> Maybe Header
+headerFromWord32s [symbol, offset, interval, points] = 
+    Just $ Header symbol offset interval points
+headerFromWord32s _ = Nothing
 
 -- ------------ TESTS -------------
 
@@ -65,7 +68,7 @@ instance Arbitrary Tick where
 
 prop_header_encode_decode_roundtrippable :: Header -> Property
 prop_header_encode_decode_roundtrippable hdr =
-    property $ (decodeHeader . encodeHeader) hdr == hdr
+    property $ (fromJust . decodeHeader . encodeHeader) hdr == hdr
 
 prop_ticks_encode_decode_roundtrippable :: Tick -> Property
 prop_ticks_encode_decode_roundtrippable tick = 
