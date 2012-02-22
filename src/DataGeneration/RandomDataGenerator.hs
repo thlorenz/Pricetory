@@ -13,7 +13,7 @@ import System.Console.CmdArgs
 
 import Contract.Types
 import Contract.Symbols (getSymbolCode, eurusd)
-import Contract.Protocol (encodeFileHeader)
+import Contract.Protocol (encodeFileHeader, encodeTick)
 
 import qualified DataGeneration.CmdArgs as A
 
@@ -41,8 +41,6 @@ getTicks prevTick rateDeltas timeInterval = x : getTicks x (tail rateDeltas) tim
                   let nextTimeOffset = (+timeInterval) $ timeOffset currentTick
                       nextRate = (+rateDelta) $ rate currentTick
                   in  Tick nextTimeOffset nextRate 
-
-encodeTick tick = L.append (encode $ timeOffset tick) (encode $ rate tick)
 
 main = do
     args <- cmdArgs A.arguments

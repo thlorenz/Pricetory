@@ -1,8 +1,10 @@
 module Contract.Protocol ( magicNumber
                          , encodeHeader
-                         , encodeFileHeader
                          , decodeHeader
+                         , encodeFileHeader
                          , decodeFileHeader
+                         , encodeTick
+                         , decodeTick   
                          ) where
 
 import qualified Data.ByteString.Lazy as L;
