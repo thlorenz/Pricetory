@@ -6,7 +6,7 @@ import Data.Maybe (fromJust)
 import Control.Monad (liftM)
 
 import Contract.Types
-import Contract.Protocol (decodeFileHeader)
+import Contract.Protocol (decodeFileHeader, decodeTick)
 
 -- | Converts a list of ByteStrings into a list of Ticks, assuming that interval is 1 sec.
 getSecondIntervalData :: [L.ByteString] -> Word32 -> [Tick]
@@ -29,23 +29,29 @@ readHeader fh = liftM (fromJust . decodeFileHeader) $ L.hGet fh bytesInHeader
 
 {- | Samples byte strings from a given file handle
      h          - the file handle
-     bytes      - the number of bytes after which to stop reading (usually the end of the file)
-     skipNum    - the number of ticks to skip in between each read
+     maxPoint    - the point after which to stop reading (usually the end of the file)
+     pointInterval- interval at which to read points
 -}
-sampleByteStrings :: Handle -> Int -> Int -> IO [L.ByteString]
-sampleByteStrings h bytes skipNum = sample bytes []
-    where sample bytes xs = do 
-            x <- L.hGet h tickSize
-            if bytes > 0 then do 
-                 hSeek h RelativeSeek $ fromIntegral (tickSize * skipNum)
-                 sample (bytes - tickSize) (x:xs)
-            else return $ reverse xs
+sampleByteStrings :: Handle -> Int -> Int -> Int -> IO [L.ByteString]
+sampleByteStrings h maxPoint interval pointSize = sample maxPoint []
+    where skipSize = pointSize * (interval - 1)
+          sample remainingPoints xs = do 
+              x <- L.hGet h pointSize
+              if remainingPoints >= interval then do 
+                   hSeek h RelativeSeek $ fromIntegral skipSize
+                   sample (remainingPoints - interval) (x:xs)
+              else return $ reverse xs
 
 main = do
     h <- openBinaryFile fileName ReadMode
-    print =<< readHeader h
+    hdr <- readHeader h
+    print hdr
 
-    print =<< sampleByteStrings h 200 60
+    fileSize <- hFileSize h
+    print fileSize
+    bs <- sampleByteStrings h (fromIntegral $ points hdr) 60 tickSize 
+    let ticks = map decodeTick bs
+    print ticks
     hClose h
     
     putStrLn "\n--------------\nDone!"
