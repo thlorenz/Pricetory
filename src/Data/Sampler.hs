@@ -45,7 +45,7 @@ sampleByteStrings h maxPoint interval pointSize =
                    sample (remainingPoints - 1) (x:xs)
               else return $ reverse xs
 
-sampleAtInterval :: Int -> Array Int L.ByteString -> Array Int L.ByteString
+sampleAtInterval :: Int -> Array Int a -> Array Int a
 sampleAtInterval interval array = listArray (min, max) $ sample min []
     where min = (fst . bounds) array
           sourceMax = (snd . bounds) array 
