@@ -1,8 +1,10 @@
 import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString as B
 
 import System.IO
 import Data.Word
 import Data.Maybe (fromJust)
+import Data.Array
 import Control.Monad (liftM)
 
 import Contract.Types
@@ -32,15 +34,24 @@ readHeader fh = liftM (fromJust . decodeFileHeader) $ L.hGet fh bytesInHeader
      maxPoint    - the point after which to stop reading (usually the end of the file)
      pointInterval- interval at which to read points
 -}
-sampleByteStrings :: Handle -> Int -> Int -> Int -> IO [L.ByteString]
-sampleByteStrings h maxPoint interval pointSize = sample maxPoint []
-    where skipSize = pointSize * (interval - 1)
+sampleByteStrings :: Handle -> Int -> Int -> Int -> IO (Array Int L.ByteString)
+sampleByteStrings h maxPoint interval pointSize = 
+    liftM (listArray (1, points)) $ sample points []
+    where points = maxPoint `div` interval
+          skipSize = pointSize * (interval - 1)
           sample remainingPoints xs = do 
               x <- L.hGet h pointSize
-              if remainingPoints >= interval then do 
+              if remainingPoints >= 0 then do 
                    hSeek h RelativeSeek $ fromIntegral skipSize
-                   sample (remainingPoints - interval) (x:xs)
+                   sample (remainingPoints - 1) (x:xs)
               else return $ reverse xs
+
+{-
+sampleAtInterval :: Int -> [a] -> [a]
+sampleAtInterval interval xs = sample xs
+    where sample _ [] = []
+          sample i xs = 
+-}
 
 main = do
     h <- openBinaryFile fileName ReadMode
@@ -50,7 +61,7 @@ main = do
     fileSize <- hFileSize h
     print fileSize
     bs <- sampleByteStrings h (fromIntegral $ points hdr) 60 tickSize 
-    let ticks = map decodeTick bs
+    let ticks = (map decodeTick . elems) bs
     print ticks
     hClose h
     
