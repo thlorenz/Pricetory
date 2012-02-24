@@ -9,6 +9,7 @@ import Control.Monad (liftM)
 
 import Contract.Types
 import Contract.Protocol (decodeFileHeader, decodeTick)
+import Utils.Array (sampleAtInterval)
 
 -- | Converts a list of ByteStrings into a list of Ticks, assuming that interval is 1 sec.
 getSecondIntervalData :: [L.ByteString] -> Word32 -> [Tick]
@@ -44,15 +45,6 @@ sampleByteStrings h maxPoint interval pointSize =
                    hSeek h RelativeSeek $ fromIntegral skipSize
                    sample (remainingPoints - 1) (x:xs)
               else return $ reverse xs
-
-sampleAtInterval :: Int -> Array Int a -> Array Int a
-sampleAtInterval interval array = listArray (min, max) $ sample min []
-    where min = (fst . bounds) array
-          sourceMax = (snd . bounds) array 
-          max = sourceMax `div` interval
-          sample i xs 
-            | i <= sourceMax  = sample (i + interval) $ (array ! i) : xs
-            | otherwise = reverse xs
 
 main = do
     h <- openBinaryFile fileName ReadMode
