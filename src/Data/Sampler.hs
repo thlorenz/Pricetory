@@ -31,12 +31,11 @@ readHeader fh = liftM (fromJust . decodeFileHeader) $ L.hGet fh bytesInHeader
 
 {- | Samples byte strings from a given file handle
      h          - the file handle
-     maxPoint    - the point after which to stop reading (usually the end of the file)
-     pointInterval- interval at which to read points
--}
+     maxPoint   - the point after which to stop reading (usually the end of the file)
+     interval   - interval at which to read points -}
 sampleByteStrings :: Handle -> Int -> Int -> Int -> IO (Array Int L.ByteString)
 sampleByteStrings h maxPoint interval pointSize = 
-    liftM (listArray (1, points)) $ sample points []
+    liftM (listArray (0, points - 1)) $ sample points []
     where points = maxPoint `div` interval
           skipSize = pointSize * (interval - 1)
           sample remainingPoints xs = do 
@@ -46,23 +45,28 @@ sampleByteStrings h maxPoint interval pointSize =
                    sample (remainingPoints - 1) (x:xs)
               else return $ reverse xs
 
-{-
-sampleAtInterval :: Int -> [a] -> [a]
-sampleAtInterval interval xs = sample xs
-    where sample _ [] = []
-          sample i xs = 
--}
+sampleAtInterval :: Int -> Array Int L.ByteString -> Array Int L.ByteString
+sampleAtInterval interval array = listArray (min, max) $ sample min []
+    where min = (fst . bounds) array
+          sourceMax = (snd . bounds) array 
+          max = sourceMax `div` interval
+          sample i xs 
+            | i <= sourceMax  = sample (i + interval) $ (array ! i) : xs
+            | otherwise = reverse xs
 
 main = do
     h <- openBinaryFile fileName ReadMode
     hdr <- readHeader h
+
     print hdr
 
-    fileSize <- hFileSize h
-    print fileSize
-    bs <- sampleByteStrings h (fromIntegral $ points hdr) 60 tickSize 
-    let ticks = (map decodeTick . elems) bs
+    minuteSample <- sampleByteStrings h (fromIntegral $ points hdr) 60 tickSize 
+
+    let hourSample = sampleAtInterval 60 minuteSample
+
+    let ticks = (map decodeTick . elems) hourSample
     print ticks
+
     hClose h
     
     putStrLn "\n--------------\nDone!"
