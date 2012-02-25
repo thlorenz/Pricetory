@@ -1,5 +1,6 @@
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString as B
+import qualified Data.Map as Map
 
 import System.IO
 import Data.Word
@@ -8,6 +9,7 @@ import Data.Array
 import Control.Monad (liftM)
 
 import Contract.Types
+import Contract.Constants
 import Contract.Protocol (decodeFileHeader, decodeTick)
 import Utils.Array (sampleAtInterval)
 
@@ -17,13 +19,6 @@ getSecondIntervalData bs points = undefined
 
 decodeTicks :: [L.ByteString] -> [Tick]
 decodeTicks = undefined
-
-dataDir = "/Users/thlorenz/dev/data/Pricetory"
-symbolName = "EURUSD"
-fileName = dataDir ++ "/" ++ symbolName ++ ".bin"
-
-word = 4
-tickSize = 2 * word
 
 -- | TODO: handle Nothing which signifies an exception
 readHeader ::  Handle -> IO Header
@@ -46,22 +41,41 @@ sampleByteStrings h maxPoint interval pointSize =
                    sample (remainingPoints - 1) (x:xs)
               else return $ reverse xs
 
-main = do
-    h <- openBinaryFile fileName ReadMode
+getFullSymbolDataPath :: FilePath -> Symbol -> FilePath
+getFullSymbolDataPath dataDir symbolName = dataDir ++ "/" ++ symbolName ++ ".bin"
+
+readTickDataAtInterval :: FilePath -> TimeInterval -> IO ((Array Int L.ByteString), Header)
+readTickDataAtInterval fullPath interval = do
+    h <- openBinaryFile fullPath ReadMode
     hdr <- readHeader h
+    sample <- sampleByteStrings h (fromIntegral $ points hdr) (fromIntegral interval) tickSize 
+    hClose h
+    return (sample, hdr)
 
-    print hdr
+getHistoricalTickData :: FilePath -> IO HistoricalTickData
+getHistoricalTickData fullPath = do 
+    (byMinute, hdr) <- readTickDataAtInterval fullPath secondsPerMinute 
+    let byHour = sampleAtInterval (fromIntegral minutesPerHour) byMinute
+    let byDay  = sampleAtInterval (fromIntegral hoursPerDay) byHour 
+    return $ HistoricalTickData 
+                (symbol hdr) 
+                (Map.fromList [ (secondsPerMinute, byMinute)
+                              , (secondsPerHour, byHour)
+                              , (secondsPerDay, byDay)
+                              ])
 
-    minuteSample <- sampleByteStrings h (fromIntegral $ points hdr) 60 tickSize 
+main = do
 
-    let hourSample = sampleAtInterval 60 minuteSample
-
-    let ticks = (map decodeTick . elems) hourSample
+    tickData <- getHistoricalTickData $ getFullSymbolDataPath dataDir symbolName
+    let hourly = (fromJust . Map.lookup secondsPerHour) $ tickDataByInterval tickData
+    let ticks = (map decodeTick . elems) hourly
     print ticks
 
-    hClose h
     
     putStrLn "\n--------------\nDone!"
+
+    where dataDir = "/Users/thlorenz/dev/data/Pricetory"
+          symbolName = "EURUSD"
 
 -- Reader monad via data-ivar, write-once variables
 -- http://hackage.haskell.org/packages/archive/data-ivar/0.30/doc/html/Data-IVar.html
