@@ -64,9 +64,14 @@ getHistoricalTickData fullPath = do
                               , (secondsPerDay, byDay)
                               ])
 
-main = do
+-----------------------
+-- ----  Tests  ---- --
+-----------------------
+
+debug = do
 
     tickData <- getHistoricalTickData $ getFullSymbolDataPath dataDir symbolName
+
     let hourly = (fromJust . Map.lookup secondsPerHour) $ tickDataByInterval tickData
     let daily = (fromJust . Map.lookup secondsPerDay) $ tickDataByInterval tickData
 

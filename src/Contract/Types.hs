@@ -26,3 +26,8 @@ data HistoricalTickData = HistoricalTickData
     , tickDataByInterval :: Map.Map TimeInterval (Array Int L.ByteString)
     } deriving Show
 
+-- | Holds Historical Tick Data for all known symbols 
+data HistoricalTickDataMap = HistoricalTickDataMap 
+    { historicalTickDataBySymbol :: Map.Map SymbolCode HistoricalTickData }
+    
+
