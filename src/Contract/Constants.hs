@@ -8,6 +8,7 @@ hoursPerDay      = 24 :: TimeInterval
 secondsPerHour   = secondsPerMinute * minutesPerHour
 secondsPerDay    = secondsPerHour * hoursPerDay
 
-word = 4 :: Int
-tickSize = 2 * word
+-- | sizes in bytes
+wordSize = 4 :: Int
+tickSize = 2 * wordSize
 

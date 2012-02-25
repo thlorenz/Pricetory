@@ -23,7 +23,7 @@ decodeTicks = undefined
 -- | TODO: handle Nothing which signifies an exception
 readHeader ::  Handle -> IO Header
 readHeader fh = liftM (fromJust . decodeFileHeader) $ L.hGet fh bytesInHeader
-    where bytesInHeader = 5 * word
+    where bytesInHeader = 5 * wordSize
 
 {- | Samples byte strings from a given file handle
      h          - the file handle
@@ -68,9 +68,12 @@ main = do
 
     tickData <- getHistoricalTickData $ getFullSymbolDataPath dataDir symbolName
     let hourly = (fromJust . Map.lookup secondsPerHour) $ tickDataByInterval tickData
-    let ticks = (map decodeTick . elems) hourly
-    print ticks
+    let daily = (fromJust . Map.lookup secondsPerDay) $ tickDataByInterval tickData
 
+    putStrLn "Hourly Data:" 
+    print $ (map decodeTick . elems) hourly
+    putStrLn "Daily Data:" 
+    print $ (map decodeTick . elems) daily
     
     putStrLn "\n--------------\nDone!"
 
