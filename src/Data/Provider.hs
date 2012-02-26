@@ -1,18 +1,22 @@
-module Data.Provider where
+module Data.Provider (provide) where
 
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Map as Map
 import Text.Printf
-import Data.Array (elems, ixmap, listArray)
+import Data.Array (elems, ixmap, listArray, (!))
 import Data.List (sort)
 import Data.Maybe
 import Contract.Types
+import Contract.Protocol (decodeTick)
+
 import Test.HUnit
 
 provide :: HistoricalTickDataMap -> SymbolCode -> TimeInterval -> TimeOffset -> TimeOffset -> [L.ByteString]
-provide allTickData code interval from to = 
-    elems . ixmap (fromIntegral from, fromIntegral to) id $ matchingTickData
+provide allTickData code interval fromTime toTime = 
+    elems . ixmap (getIndex fromTime, getIndex toTime) id $ matchingTickData
     where 
+        getIndex = getIndexForTime startTime interval . fromIntegral
+        startTime = timeOffset . decodeTick . (! 0) $ matchingTickData
         matchingTickData = fromJust . Map.lookup key $ tickDataForCode 
         key = negotiateUp interval (Map.keys tickDataForCode)
         tickDataForCode = tickDataByInterval . getAllHistTickDataForCode $ allTickData
