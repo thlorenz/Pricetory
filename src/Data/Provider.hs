@@ -2,25 +2,32 @@ module Data.Provider where
 
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Map as Map
+import Data.Array (elems, ixmap)
 import Data.List (sort)
 import Data.Maybe
 import Contract.Types
 import Test.HUnit
 
-provide :: HistoricalTickDataMap -> SymbolCode -> TimeOffset -> TimeInterval -> Int -> L.ByteString
-provide allTickData code offset interval points = undefined
+provide :: HistoricalTickDataMap -> SymbolCode -> TimeInterval -> TimeOffset -> TimeOffset -> [L.ByteString]
+provide allTickData code interval from to = 
+    elems . ixmap (fromIntegral from, fromIntegral to) (\i -> i) $ tickArray
     where 
-        -- tickData = fromJust $ Map.lookup code allTickData     
-        -- key = negotiate interval (Map.keys tickData)
+        tickArray = fromJust . Map.lookup key $ tickDataForCode 
+        key = negotiateUp interval (Map.keys tickDataForCode)
+        tickDataForCode = tickDataByInterval . getHistTickDataForCode $ allTickData
+        getHistTickDataForCode = fromJust . Map.lookup code . historicalTickDataBySymbol 
 
 negotiateUp :: (Ord a) => a -> [a] -> a
 negotiateUp desired availables
-    | minimum availables >= desired = minimum availables
-    | maximum availables <= desired = maximum availables
-    | otherwise                     = closest desired $ (sort availables)
-    where closest d (x:xs)
-            | d <= x    = x
-            | otherwise = closest d xs
+    | min >= desired = min
+    | max <= desired = max
+    | otherwise      = closest desired $ (sort availables)
+    where 
+        min = minimum availables
+        max = maximum availables
+        closest d (x:xs) 
+          | d <= x    = x
+          | otherwise = closest d xs
     
 
 -----------------------
@@ -38,3 +45,5 @@ tests = TestList $ map TestCase $
     negotiateUpTests
 
 runTests = runTestTT tests
+
+
