@@ -2,7 +2,8 @@ module Data.Provider where
 
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Map as Map
-import Data.Array (elems, ixmap)
+import Text.Printf
+import Data.Array (elems, ixmap, listArray)
 import Data.List (sort)
 import Data.Maybe
 import Contract.Types
@@ -10,25 +11,32 @@ import Test.HUnit
 
 provide :: HistoricalTickDataMap -> SymbolCode -> TimeInterval -> TimeOffset -> TimeOffset -> [L.ByteString]
 provide allTickData code interval from to = 
-    elems . ixmap (fromIntegral from, fromIntegral to) (\i -> i) $ tickArray
+    elems . ixmap (fromIntegral from, fromIntegral to) id $ matchingTickData
     where 
-        tickArray = fromJust . Map.lookup key $ tickDataForCode 
+        matchingTickData = fromJust . Map.lookup key $ tickDataForCode 
         key = negotiateUp interval (Map.keys tickDataForCode)
-        tickDataForCode = tickDataByInterval . getHistTickDataForCode $ allTickData
-        getHistTickDataForCode = fromJust . Map.lookup code . historicalTickDataBySymbol 
+        tickDataForCode = tickDataByInterval . getAllHistTickDataForCode $ allTickData
+        getAllHistTickDataForCode = fromJust . Map.lookup code . historicalTickDataBySymbol 
 
 negotiateUp :: (Ord a) => a -> [a] -> a
 negotiateUp desired availables
     | min >= desired = min
     | max <= desired = max
-    | otherwise      = closest desired $ (sort availables)
+    | otherwise      = closest desired $ sort availables
     where 
         min = minimum availables
         max = maximum availables
         closest d (x:xs) 
           | d <= x    = x
           | otherwise = closest d xs
-    
+          
+getIndexForTime :: TimeOffset -> TimeInterval -> TimeOffset -> Int
+getIndexForTime startTime interval desiredTime = if idx >= 0 then idx else 0
+    where idx = offsetFromStart `div` iv 
+          offsetFromStart = dt - st
+          st = fromIntegral startTime
+          dt = fromIntegral desiredTime
+          iv = fromIntegral interval
 
 -----------------------
 -- ----  Tests  ---- --
@@ -41,9 +49,31 @@ negotiateUpTests =
     , assertEqual "negotiateUp 5 in [1, 2, 3] returns 3" 3 $ negotiateUp 5 [1, 2, 3]
     ]
 
+getIndexForTimeTests = map (\(stm, intrv, dtm, res) -> assertEqual
+    (printf "getIndexForTime startTime: %d, interval: %d, desiredTime: %d = %d" 
+            stm intrv dtm res) res $ getIndexForTime stm intrv dtm)
+    --  startTime, interval, desiredTime, expected     Example
+    [ ( 0,         1,        2,           2       ) -- [0 ,1 ,2*] 
+    , ( 1,         1,        2,           1       ) -- [1 ,2*,3 ] 
+    , ( 0,         2,        2,           1       ) -- [0 ,2*,4 ] 
+    , ( 1,         2,        2,           0       ) -- [1*,3 ,5 ] 
+    , ( 0,         5,       10,           2       ) -- [0 ,5 ,10*] 
+    , ( 3,         5,        8,           1       ) -- [3 ,8*,13] 
+    , ( 3,         5,        7,           0       ) -- [3*,8 ,13] 
+    ]
+
 tests = TestList $ map TestCase $
-    negotiateUpTests
+    negotiateUpTests ++
+    getIndexForTimeTests
 
 runTests = runTestTT tests
 
+
+-- Mini Spikes
+main = do
+    putStrLn getPrintFormat
+    where 
+        getArraySlice = elems . ixmap (1, 3) id $ source 
+            where source = listArray (0, 4) [ 1, 2, 3, 4, 5 ]
+        getPrintFormat = printf "Hello %d" (3 :: TimeOffset)
 
