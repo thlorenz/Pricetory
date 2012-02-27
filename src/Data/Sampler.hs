@@ -1,3 +1,5 @@
+module Data.Sampler where
+
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString as B
 import qualified Data.Map as Map
@@ -12,13 +14,6 @@ import Contract.Types
 import Contract.Constants
 import Contract.Protocol (decodeFileHeader, decodeTick)
 import Utils.Array (sampleAtInterval)
-
--- | Converts a list of ByteStrings into a list of Ticks, assuming that interval is 1 sec.
-getSecondIntervalData :: [L.ByteString] -> Word32 -> [Tick]
-getSecondIntervalData bs points = undefined
-
-decodeTicks :: [L.ByteString] -> [Tick]
-decodeTicks = undefined
 
 -- | TODO: handle Nothing which signifies an exception
 readHeader ::  Handle -> IO Header
@@ -64,6 +59,13 @@ getHistoricalTickData fullPath = do
                               , (secondsPerDay, byDay)
                               ])
 
+getWorldOfTickData :: FilePath -> [Symbol] -> IO HistoricalTickDataMap
+getWorldOfTickData dataDir = do
+    tpls <- mapM (liftM toTuple . getHistoricalTickData . getFullSymbolDataPath dataDir)
+    let mapped = liftM Map.fromList $ tpls
+    return $ liftM HistoricalTickDataMap $ mapped
+    where 
+        toTuple htd = (tickDataSymbol htd, htd)
 -----------------------
 -- ----  Tests  ---- --
 -----------------------
