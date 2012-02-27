@@ -1,4 +1,6 @@
 module Contract.Protocol ( magicNumber
+                         , bytesInHeader
+                         , bytesInFileHeader
                          , encodeHeader
                          , decodeHeader
                          , encodeFileHeader
@@ -13,11 +15,18 @@ import Data.Binary
 import Data.Maybe (fromJust)
 
 import Contract.Types
+import Contract.Constants
 
 import Test.QuickCheck
 
 magicNumber :: Word32
 magicNumber = 0x54484f52
+
+bytesInHeader ::  Int
+bytesInHeader = 4 * wordSize
+
+bytesInFileHeader ::  Int
+bytesInFileHeader = 5 * wordSize
 
 encodeHeader :: Header -> L.ByteString
 encodeHeader = L.concat . map encode . unfoldHeader

@@ -2,14 +2,19 @@
 
 module Network.TCPServer where
 
+import qualified Data.ByteString.Lazy as L
+
 import System.Console.CmdArgs
 import Network (listenOn, accept, PortID(..), Socket)
-import System.IO (hSetBuffering, hGetLine, hPutStrLn, BufferMode(..), Handle, FilePath)
+import System.IO (hSetBuffering, hSetBinaryMode, BufferMode(..), Handle, FilePath)
 import Control.Concurrent (forkIO)
 
 import Data.Sampler (getWorldOfTickData)
+
+import Contract.Protocol (bytesInHeader) 
 import Contract.Types
 import Contract.Symbols
+
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
@@ -28,7 +33,8 @@ main = do
     args <- cmdArgs arguments
     sock <- (listenOn . PortNumber . fromIntegral . port) args
     putStrLn $ "Getting world of tickdata from " ++ (dataFolder args)
-    worldOfTickData <- getWorldOfTickData (dataFolder args) [eurusd] 
+    -- worldOfTickData <- getWorldOfTickData (dataFolder args) [eurusd] 
+    let worldOfTickData = undefined    
 
     putStrLn $ "Listening on " ++ (host args) ++ ":" ++ (show $ port args) ++ "."
     sockHandler sock worldOfTickData 
@@ -36,18 +42,21 @@ main = do
 sockHandler :: Socket -> HistoricalTickDataMap -> IO ()
 sockHandler sock world = do
     (handle, host, port) <- accept sock
-    putStrLn $ "Accepted " ++ (show host) ++ ":" ++ (show port)
+    putStrLn $ "Accepted " ++ (show host) ++ ":" ++ (show port) ++ "."
     
     -- no buffering for client's socket handle
     hSetBuffering handle NoBuffering
+    -- messages are in binary format
+    hSetBinaryMode handle True
 
-    forkIO $ commandProcessor handle
+    forkIO $ commandProcessor handle world
 
     -- handle more incoming connections
     sockHandler sock world
 
-commandProcessor :: Handle -> IO () 
-commandProcessor handle = do
+commandProcessor :: Handle -> HistoricalTickDataMap -> IO () 
+commandProcessor handle world = do
+    L.hGet handle bytesInHeader >>= print
     
     -- recurse to execute several commands over same connection
-    commandProcessor handle
+    commandProcessor handle world
