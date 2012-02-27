@@ -5,7 +5,7 @@ module Network.TCPServer where
 import qualified Data.ByteString.Lazy as L
 
 import System.Console.CmdArgs
-import Network (listenOn, accept, PortID(..), Socket)
+import Network (listenOn, accept, PortID(..), Socket, withSocketsDo)
 import System.IO (hSetBuffering, hSetBinaryMode, BufferMode(..), Handle, FilePath)
 import Control.Concurrent (forkIO)
 
@@ -29,7 +29,7 @@ arguments = Arguments
     where defFolder = "/Users/thlorenz/dev/data/Pricetory"
 
 main :: IO ()
-main = do
+main = withSocketsDo $ do
     args <- cmdArgs arguments
     sock <- (listenOn . PortNumber . fromIntegral . port) args
     putStrLn $ "Getting world of tickdata from " ++ (dataFolder args)
