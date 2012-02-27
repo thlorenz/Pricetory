@@ -1,4 +1,4 @@
-module Data.Sampler where
+module Data.Sampler (getWorldOfTickData) where
 
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString as B
@@ -63,8 +63,8 @@ getWorldOfTickData :: FilePath -> [Symbol] -> IO HistoricalTickDataMap
 getWorldOfTickData dataDir = do
     tpls <- mapM (liftM toTuple . getHistoricalTickData . getFullSymbolDataPath dataDir)
     return $ liftM (HistoricalTickDataMap . Map.fromList) $ tpls
-    where 
-        toTuple htd = (tickDataSymbol htd, htd)
+    where toTuple htd = (tickDataSymbol htd, htd)
+
 -----------------------
 -- ----  Tests  ---- --
 -----------------------
@@ -85,6 +85,5 @@ debug = do
 
     where dataDir = "/Users/thlorenz/dev/data/Pricetory"
           symbolName = "EURUSD"
-
--- Reader monad via data-ivar, write-once variables
--- http://hackage.haskell.org/packages/archive/data-ivar/0.30/doc/html/Data-IVar.html
+          
+main = debug
