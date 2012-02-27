@@ -62,8 +62,7 @@ getHistoricalTickData fullPath = do
 getWorldOfTickData :: FilePath -> [Symbol] -> IO HistoricalTickDataMap
 getWorldOfTickData dataDir = do
     tpls <- mapM (liftM toTuple . getHistoricalTickData . getFullSymbolDataPath dataDir)
-    let mapped = liftM Map.fromList $ tpls
-    return $ liftM HistoricalTickDataMap $ mapped
+    return $ liftM (HistoricalTickDataMap . Map.fromList) $ tpls
     where 
         toTuple htd = (tickDataSymbol htd, htd)
 -----------------------
