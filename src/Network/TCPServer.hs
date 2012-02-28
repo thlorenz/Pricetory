@@ -4,14 +4,17 @@ module Network.TCPServer where
 
 import qualified Data.ByteString.Lazy as L
 
-import System.Console.CmdArgs
 import Network (listenOn, accept, PortID(..), Socket, withSocketsDo)
+
+import System.Console.CmdArgs
 import System.IO (hSetBuffering, hSetBinaryMode, BufferMode(..), Handle, FilePath)
+
 import Control.Concurrent (forkIO)
+import Control.Monad (liftM)
 
 import Data.Sampler (getWorldOfTickData)
 
-import Contract.Protocol (bytesInHeader) 
+import Contract.Protocol (bytesInHeader, decodeHeader) 
 import Contract.Types
 import Contract.Symbols
 
@@ -36,13 +39,13 @@ main = withSocketsDo $ do
     -- worldOfTickData <- getWorldOfTickData (dataFolder args) [eurusd] 
     let worldOfTickData = undefined    
 
-    putStrLn $ "Listening on " ++ (host args) ++ ":" ++ (show $ port args) ++ "."
+    putStrLn $ "Listening on [" ++ (host args) ++ ":" ++ (show $ port args) ++ "]."
     sockHandler sock worldOfTickData 
 
 sockHandler :: Socket -> HistoricalTickDataMap -> IO ()
 sockHandler sock world = do
     (handle, host, port) <- accept sock
-    putStrLn $ "Accepted " ++ (show host) ++ ":" ++ (show port) ++ "."
+    putStrLn $ "Accepted [" ++ (show host) ++ ":" ++ (show port) ++ "]."
     
     -- no buffering for client's socket handle
     hSetBuffering handle NoBuffering
@@ -56,7 +59,11 @@ sockHandler sock world = do
 
 commandProcessor :: Handle -> HistoricalTickDataMap -> IO () 
 commandProcessor handle world = do
-    L.hGet handle bytesInHeader >>= print
+    bytes <- L.hGet handle bytesInHeader
+    putStrLn $ show bytes
+    let hdr = decodeHeader bytes
+    putStrLn $ show hdr
+    
     
     -- recurse to execute several commands over same connection
-    commandProcessor handle world
+    -- commandProcessor handle world
