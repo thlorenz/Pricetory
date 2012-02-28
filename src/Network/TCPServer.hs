@@ -14,7 +14,7 @@ import Control.Monad (liftM, when)
 
 import Data.Sampler (getWorldOfTickData)
 
-import Contract.Protocol (bytesInRequest, decodeRequest) 
+import Contract.Protocol (bytesInRequest, decodeRequest, encodeRequestAck, invalid, valid) 
 import Contract.Types
 import Contract.Symbols
 
@@ -58,18 +58,26 @@ sockHandler sock world = do
     sockHandler sock world
 
 commandProcessor :: Handle -> HistoricalTickDataMap -> IO () 
-commandProcessor handle world = do
-    bytes <- L.hGet handle bytesInRequest
+commandProcessor h world = do
+    bytes <- L.hGet h bytesInRequest
 
     when (bytes /= L.empty) $ do
         let mbReq = decodeRequest bytes
         case mbReq of
-            Just req    -> print $ show req
-            Nothing     -> print $ "Invalid request format" ++ (show bytes)
+            Just req    -> handleValidRequest h world $ "Handling " ++ (show req)
+            Nothing     -> 
+                handleInvalidRequest h $ "Invalid request format" ++ (show bytes)
     
     -- recurse to execute several commands over same connection
-    commandProcessor handle world
+    commandProcessor h world
 
+handleValidRequest :: Handle -> HistoricalTickDataMap -> String -> IO ()
+handleValidRequest h world msg = 
+    print msg >> L.hPut h (encodeRequestAck $ RequestAck valid)
+
+handleInvalidRequest :: Handle -> String -> IO ()
+handleInvalidRequest h msg =  
+    print msg >> L.hPut h (encodeRequestAck $ RequestAck invalid)
 
 {- Comments
     L.hGet always returns something - empty - when no bytes where sent b/c it uses

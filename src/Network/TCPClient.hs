@@ -14,9 +14,11 @@ import Network (connectTo, accept, PortID(..), withSocketsDo)
 
 import Control.Exception (finally, catch, Exception(..))
 import Control.Concurrent (forkIO)
+import Control.Monad (liftM)
 
 import Contract.Types
-import Contract.Protocol (encodeRequest)
+import Contract.Constants
+import Contract.Protocol (encodeRequest, decodeRequestAck)
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
@@ -38,18 +40,21 @@ main = withSocketsDo $ do
                 | otherwise    = print e
 
 sockHandler :: Handle -> IO ()
-sockHandler handle = do
+sockHandler h = do
     putStrLn "Handling socket connection"
     
     -- no buffering for client's socket handle
-    hSetBuffering handle NoBuffering
+    hSetBuffering h NoBuffering
     -- messages are in binary format
-    hSetBinaryMode handle True
+    hSetBinaryMode h True
 
     let hdr = encodeRequest  (Request 0 1 2 3)
-    L.hPut handle hdr
-    L.hPut handle hdr
-    L.hPut handle hdr
+    L.hPut h hdr
+    
+    bs <- L.hGet h wordSize
+    let ack = decodeRequestAck bs 
+    print ack
+
 
 {- Smarter way to forkIO
 spawnThread :: IO () -> IO ThreadId

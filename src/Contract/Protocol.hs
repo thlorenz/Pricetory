@@ -2,6 +2,8 @@ module Contract.Protocol ( magicNumber
                          , bytesInHeader
                          , bytesInRequest
                          , bytesInFileHeader
+                         , invalid
+                         , valid
                          , encodeHeader
                          , decodeHeader
                          , encodeRequest
@@ -10,6 +12,8 @@ module Contract.Protocol ( magicNumber
                          , decodeFileHeader
                          , encodeTick
                          , decodeTick   
+                         , encodeRequestAck
+                         , decodeRequestAck
                          ) where
 
 import qualified Data.ByteString.Lazy as L;
@@ -33,6 +37,12 @@ bytesInRequest = 4 * wordSize
 
 bytesInFileHeader ::  Int
 bytesInFileHeader = 5 * wordSize
+
+invalid :: Word32
+invalid = 0
+
+valid :: Word32
+valid = 1
 
 encodeHeader :: Header -> L.ByteString
 encodeHeader = L.concat . map encode . unfoldHeader
@@ -66,11 +76,12 @@ decodeTick :: L.ByteString -> Tick
 decodeTick = tickFromWords . decodeWord32s 
     where tickFromWords [timeOffset, rate] = Tick timeOffset rate
 
-decodeWord32s :: L.ByteString -> [Word32]
-decodeWord32s bs = map decode (chunk32s [] bs)
-    where chunk32s xs bs = if L.null bs then reverse xs
-                           else let (x, y) = L.splitAt 4 bs in chunk32s (x:xs) y 
-                                    
+encodeRequestAck :: RequestAck -> L.ByteString
+encodeRequestAck (RequestAck ackOK) = encode ackOK
+
+decodeRequestAck :: L.ByteString -> RequestAck
+decodeRequestAck = RequestAck . decode 
+
 headerFromWord32s :: [Word32] -> Maybe Header
 headerFromWord32s [symbol, offset, interval, points] = 
     Just $ Header symbol offset interval points
@@ -81,6 +92,11 @@ requestFromWord32s [reqSymbol, reqStartOffset, reqEndOffset, reqInterval] =
     Just $ Request reqSymbol reqStartOffset reqEndOffset reqInterval  
 requestFromWord32s _ = Nothing
 
+decodeWord32s :: L.ByteString -> [Word32]
+decodeWord32s bs = map decode (chunk32s [] bs)
+    where chunk32s xs bs = if L.null bs then reverse xs
+                           else let (x, y) = L.splitAt 4 bs in chunk32s (x:xs) y 
+                                    
 -- ------------ TESTS -------------
 
 instance Arbitrary Header where

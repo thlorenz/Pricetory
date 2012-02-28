@@ -25,6 +25,9 @@ data Request = Request
     , reqInterval    :: TimeInterval
     } deriving (Show, Eq)
 
+-- | Sent to client to ack valid (ackOK = 1) or invalid (ackOK = 0) request
+data RequestAck = RequestAck { ackOK :: Word32 } deriving Show
+
 data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate } deriving (Show, Eq)
 
 -- | Interval of Tick Data is given in seconds
