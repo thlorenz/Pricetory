@@ -10,7 +10,7 @@ import System.Console.CmdArgs
 import System.IO (hSetBuffering, hSetBinaryMode, BufferMode(..), Handle, FilePath)
 
 import Control.Concurrent (forkIO)
-import Control.Monad (liftM)
+import Control.Monad (liftM, when)
 
 import Data.Sampler (getWorldOfTickData)
 
@@ -60,10 +60,29 @@ sockHandler sock world = do
 commandProcessor :: Handle -> HistoricalTickDataMap -> IO () 
 commandProcessor handle world = do
     bytes <- L.hGet handle bytesInRequest
-    let mbReq = decodeRequest bytes
-    case mbReq of
-        Just req    -> putStrLn $ show req
-        Nothing     -> return ()
+
+    when (bytes /= L.empty) $ do
+        let mbReq = decodeRequest bytes
+        case mbReq of
+            Just req    -> print $ show req
+            Nothing     -> print $ "Invalid request format" ++ (show bytes)
     
     -- recurse to execute several commands over same connection
     commandProcessor handle world
+
+
+{- Comments
+    L.hGet always returns something - empty - when no bytes where sent b/c it uses
+    hGetN under the hood which is implemented as follows:
+
+    hGetN :: Int -> Handle -> Int -> IO ByteString
+    hGetN k h n | n > 0 = readChunks n
+      where
+        STRICT1(readChunks)
+        readChunks i = do
+            c <- S.hGet h (min k i)
+            case S.length c of
+                0 -> return Empty                   <--- that's why
+                m -> do cs <- readChunks (i - m)
+                        return (Chunk c cs)
+-}
