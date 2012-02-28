@@ -11,11 +11,19 @@ type TimeOffset   =  Word32
 type TimeInterval =  Word32
 type Rate         =  Word32
 
-data Header = Header { symbol   :: SymbolCode
-                     , offset   :: TimeOffset
-                     , interval :: TimeInterval
-                     , points   :: Word32
-                     } deriving (Show, Eq)
+data Header = Header 
+    { symbol   :: SymbolCode
+    , offset   :: TimeOffset
+    , interval :: TimeInterval
+    , points   :: Word32
+    } deriving (Show, Eq)
+
+data Request = Request 
+    { reqSymbol      :: SymbolCode
+    , reqStartOffset :: TimeOffset
+    , reqEndOffset   :: TimeOffset
+    , reqInterval    :: TimeInterval
+    } deriving (Show, Eq)
 
 data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate } deriving (Show, Eq)
 

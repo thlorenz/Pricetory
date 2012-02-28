@@ -16,7 +16,7 @@ import Control.Exception (finally, catch, Exception(..))
 import Control.Concurrent (forkIO)
 
 import Contract.Types
-import Contract.Protocol (encodeHeader)
+import Contract.Protocol (encodeRequest)
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
@@ -31,8 +31,8 @@ arguments = Arguments
 main :: IO ()
 main = withSocketsDo $ do
     args <- cmdArgs arguments
-    sock <- connectTo (host args) $ (PortNumber . fromIntegral . port) args
-    sockHandler sock `catch` handler `finally` hClose sock
+    handle <- connectTo (host args) $ (PortNumber . fromIntegral . port) args
+    sockHandler handle `catch` handler `finally` hClose handle
         where handler e
                 | isEOFError e = return ()
                 | otherwise    = print e
@@ -46,10 +46,10 @@ sockHandler handle = do
     -- messages are in binary format
     hSetBinaryMode handle True
 
-    let hdr = encodeHeader  (Header 0 1 2 3)
+    let hdr = encodeRequest  (Request 0 1 2 3)
     L.hPut handle hdr
-
-    hClose handle
+    L.hPut handle hdr
+    L.hPut handle hdr
 
 {- Smarter way to forkIO
 spawnThread :: IO () -> IO ThreadId

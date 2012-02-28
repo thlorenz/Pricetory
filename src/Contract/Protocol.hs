@@ -1,8 +1,11 @@
 module Contract.Protocol ( magicNumber
                          , bytesInHeader
+                         , bytesInRequest
                          , bytesInFileHeader
                          , encodeHeader
                          , decodeHeader
+                         , encodeRequest
+                         , decodeRequest
                          , encodeFileHeader
                          , decodeFileHeader
                          , encodeTick
@@ -25,6 +28,9 @@ magicNumber = 0x54484f52
 bytesInHeader ::  Int
 bytesInHeader = 4 * wordSize
 
+bytesInRequest ::  Int
+bytesInRequest = 4 * wordSize
+
 bytesInFileHeader ::  Int
 bytesInFileHeader = 5 * wordSize
 
@@ -35,6 +41,15 @@ encodeHeader = L.concat . map encode . unfoldHeader
 
 decodeHeader :: L.ByteString -> Maybe Header
 decodeHeader = headerFromWord32s . decodeWord32s
+
+encodeRequest :: Request -> L.ByteString
+encodeRequest = L.concat . map encode . unfoldHeader
+    where unfoldHeader :: Request -> [Word32] 
+          unfoldHeader hdr = 
+            [reqSymbol hdr, reqStartOffset hdr, reqEndOffset hdr, reqInterval hdr]
+
+decodeRequest :: L.ByteString -> Maybe Request
+decodeRequest = requestFromWord32s . decodeWord32s
 
 encodeFileHeader :: Header -> L.ByteString
 encodeFileHeader hdr = L.append (encode magicNumber) (encodeHeader hdr)
@@ -55,11 +70,16 @@ decodeWord32s :: L.ByteString -> [Word32]
 decodeWord32s bs = map decode (chunk32s [] bs)
     where chunk32s xs bs = if L.null bs then reverse xs
                            else let (x, y) = L.splitAt 4 bs in chunk32s (x:xs) y 
-
+                                    
 headerFromWord32s :: [Word32] -> Maybe Header
 headerFromWord32s [symbol, offset, interval, points] = 
     Just $ Header symbol offset interval points
 headerFromWord32s _ = Nothing
+
+requestFromWord32s :: [Word32] -> Maybe Request
+requestFromWord32s [reqSymbol, reqStartOffset, reqEndOffset, reqInterval] = 
+    Just $ Request reqSymbol reqStartOffset reqEndOffset reqInterval  
+requestFromWord32s _ = Nothing
 
 -- ------------ TESTS -------------
 

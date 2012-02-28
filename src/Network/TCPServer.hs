@@ -14,7 +14,7 @@ import Control.Monad (liftM)
 
 import Data.Sampler (getWorldOfTickData)
 
-import Contract.Protocol (bytesInHeader, decodeHeader) 
+import Contract.Protocol (bytesInRequest, decodeRequest) 
 import Contract.Types
 import Contract.Symbols
 
@@ -59,11 +59,11 @@ sockHandler sock world = do
 
 commandProcessor :: Handle -> HistoricalTickDataMap -> IO () 
 commandProcessor handle world = do
-    bytes <- L.hGet handle bytesInHeader
-    putStrLn $ show bytes
-    let hdr = decodeHeader bytes
-    putStrLn $ show hdr
-    
+    bytes <- L.hGet handle bytesInRequest
+    let mbReq = decodeRequest bytes
+    case mbReq of
+        Just req    -> putStrLn $ show req
+        Nothing     -> return ()
     
     -- recurse to execute several commands over same connection
-    -- commandProcessor handle world
+    commandProcessor handle world
