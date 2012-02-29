@@ -1,19 +1,20 @@
 module Contract.Protocol ( magicNumber
-                         , bytesInHeader
-                         , bytesInRequest
-                         , bytesInFileHeader
+                         , headerSize
+                         , requestSize
+                         , requestAckSize
+                         , fileHeaderSize
                          , invalid
                          , valid
                          , encodeHeader
                          , decodeHeader
                          , encodeRequest
                          , decodeRequest
+                         , encodeRequestAck
+                         , decodeRequestAck
                          , encodeFileHeader
                          , decodeFileHeader
                          , encodeTick
                          , decodeTick   
-                         , encodeRequestAck
-                         , decodeRequestAck
                          ) where
 
 import qualified Data.ByteString.Lazy as L;
@@ -21,28 +22,17 @@ import qualified Data.ByteString as B;
 import Data.Binary
 import Data.Maybe (fromJust)
 
+import Foreign.Storable (sizeOf)
+
 import Contract.Types
 import Contract.Constants
 
 import Test.QuickCheck
 
-magicNumber :: Word32
-magicNumber = 0x54484f52
+magicNumber    = 0x54484f52    :: Word32
 
-bytesInHeader ::  Int
-bytesInHeader = 4 * wordSize
-
-bytesInRequest ::  Int
-bytesInRequest = 4 * wordSize
-
-bytesInFileHeader ::  Int
-bytesInFileHeader = 5 * wordSize
-
-invalid :: Word32
-invalid = 0
-
-valid :: Word32
-valid = 1
+invalid =  0 :: Word32
+valid   =  1 :: Word32
 
 encodeHeader :: Header -> L.ByteString
 encodeHeader = L.concat . map encode . unfoldHeader
@@ -61,6 +51,14 @@ encodeRequest = L.concat . map encode . unfoldHeader
 decodeRequest :: L.ByteString -> Maybe Request
 decodeRequest = requestFromWord32s . decodeWord32s
 
+encodeRequestAck :: RequestAck -> L.ByteString
+encodeRequestAck (RequestAck ackOK ackMsgCode) = 
+    L.concat . map encode $ [ackOK, ackMsgCode]
+
+decodeRequestAck :: L.ByteString -> RequestAck
+decodeRequestAck = requestAckFromWords . decodeWord32s
+    where requestAckFromWords [ackOK, ackMsgCode] = RequestAck ackOK ackMsgCode
+
 encodeFileHeader :: Header -> L.ByteString
 encodeFileHeader hdr = L.append (encode magicNumber) (encodeHeader hdr)
 
@@ -75,12 +73,6 @@ encodeTick x = L.concat [encode $ timeOffset x, encode $ rate x]
 decodeTick :: L.ByteString -> Tick
 decodeTick = tickFromWords . decodeWord32s 
     where tickFromWords [timeOffset, rate] = Tick timeOffset rate
-
-encodeRequestAck :: RequestAck -> L.ByteString
-encodeRequestAck (RequestAck ackOK) = encode ackOK
-
-decodeRequestAck :: L.ByteString -> RequestAck
-decodeRequestAck = RequestAck . decode 
 
 headerFromWord32s :: [Word32] -> Maybe Header
 headerFromWord32s [symbol, offset, interval, points] = 

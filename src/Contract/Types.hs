@@ -26,7 +26,7 @@ data Request = Request
     } deriving (Show, Eq)
 
 -- | Sent to client to ack valid (ackOK = 1) or invalid (ackOK = 0) request
-data RequestAck = RequestAck { ackOK :: Word32 } deriving Show
+data RequestAck = RequestAck { ackOK :: Word32 , ackMsgCode :: Word32} deriving Show
 
 data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate } deriving (Show, Eq)
 
@@ -41,4 +41,11 @@ data HistoricalTickData = HistoricalTickData
 data HistoricalTickDataMap = HistoricalTickDataMap 
     { historicalTickDataBySymbol :: Map.Map SymbolCode HistoricalTickData }
     
+-- | sizes in bytes
+wordSize       =  4 :: Int
+tickSize       =  2 * wordSize :: Int
+headerSize     =  4 * wordSize :: Int
+requestSize    =  4 * wordSize :: Int
+requestAckSize =  2 * wordSize :: Int
+fileHeaderSize =  5 * wordSize :: Int
 

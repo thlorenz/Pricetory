@@ -48,7 +48,7 @@ sockHandler h = do
     -- messages are in binary format
     hSetBinaryMode h True
 
-    let hdr = encodeRequest  (Request 0 1 2 3)
+    let hdr = encodeRequest (Request 0 1 2 3)
     L.hPut h hdr
     
     bs <- L.hGet h wordSize

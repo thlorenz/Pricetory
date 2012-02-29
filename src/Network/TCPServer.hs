@@ -14,10 +14,10 @@ import Control.Monad (liftM, when)
 
 import Data.Sampler (getWorldOfTickData)
 
-import Contract.Protocol (bytesInRequest, decodeRequest, encodeRequestAck, invalid, valid) 
+import Contract.Protocol (requestSize, decodeRequest, encodeRequestAck, invalid, valid) 
 import Contract.Types
 import Contract.Symbols
-
+import Contract.RequestAckMessages
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
@@ -59,25 +59,25 @@ sockHandler sock world = do
 
 commandProcessor :: Handle -> HistoricalTickDataMap -> IO () 
 commandProcessor h world = do
-    bytes <- L.hGet h bytesInRequest
+    bytes <- L.hGet h requestSize
 
     when (bytes /= L.empty) $ do
         let mbReq = decodeRequest bytes
         case mbReq of
-            Just req    -> handleValidRequest h world $ "Handling " ++ (show req)
-            Nothing     -> 
-                handleInvalidRequest h $ "Invalid request format" ++ (show bytes)
+            Just req    -> handleWellformedRequest h world $ "Handling " ++ (show req)
+            Nothing     -> handleMalformedRequest h bytes
     
     -- recurse to execute several commands over same connection
     commandProcessor h world
 
-handleValidRequest :: Handle -> HistoricalTickDataMap -> String -> IO ()
-handleValidRequest h world msg = 
-    print msg >> L.hPut h (encodeRequestAck $ RequestAck valid)
+handleWellformedRequest :: Handle -> HistoricalTickDataMap -> String -> IO ()
+handleWellformedRequest h world msg = 
+    print msg >> L.hPut h (encodeRequestAck $ RequestAck valid 0)
 
-handleInvalidRequest :: Handle -> String -> IO ()
-handleInvalidRequest h msg =  
-    print msg >> L.hPut h (encodeRequestAck $ RequestAck invalid)
+handleMalformedRequest :: Handle -> L.ByteString -> IO ()
+handleMalformedRequest h reqBytes =
+    print ("Invalid request format" ++ (show reqBytes)) >>
+    L.hPut h (encodeRequestAck $ RequestAck invalid invalidFormatMsgCode)
 
 {- Comments
     L.hGet always returns something - empty - when no bytes where sent b/c it uses

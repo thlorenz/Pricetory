@@ -12,12 +12,12 @@ import Control.Monad (liftM)
 
 import Contract.Types
 import Contract.Constants
-import Contract.Protocol (decodeFileHeader, decodeTick, bytesInFileHeader)
+import Contract.Protocol (decodeFileHeader, decodeTick, fileHeaderSize)
 import Utils.Array (sampleAtInterval)
 
 -- | TODO: handle Nothing which signifies an exception
 readHeader ::  Handle -> IO Header
-readHeader fh = liftM (fromJust . decodeFileHeader) $ L.hGet fh bytesInFileHeader
+readHeader fh = liftM (fromJust . decodeFileHeader) $ L.hGet fh fileHeaderSize
 
 {- | Samples byte strings from a given file handle
      h          - the file handle
