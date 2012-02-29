@@ -5,6 +5,8 @@ import qualified Data.Map as Map
 import Data.Word
 import Data.Array
 
+import Contract.RequestAckMessages (decodeRequestAckMessage)
+
 type Symbol       =  String
 type SymbolCode   =  Word32
 type TimeOffset   =  Word32
@@ -26,7 +28,11 @@ data Request = Request
     } deriving (Show, Eq)
 
 -- | Sent to client to ack valid (ackOK = 1) or invalid (ackOK = 0) request
-data RequestAck = RequestAck { ackOK :: Word32 , ackMsgCode :: Word32} deriving Show
+data RequestAck = RequestAck { ackOK :: Word32 , ackMsgCode :: Word32}
+instance Show RequestAck where
+    show (RequestAck ackOK ackMsgCode)
+        | ackOK == 1 = "RequestAck: OK."
+        | otherwise  = "RequestAck: NotOK. (" ++ (decodeRequestAckMessage ackMsgCode) ++ ")"
 
 data Tick = Tick { timeOffset :: TimeOffset, rate :: Rate } deriving (Show, Eq)
 
