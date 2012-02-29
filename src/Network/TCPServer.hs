@@ -64,20 +64,32 @@ commandProcessor h world = do
     when (bytes /= L.empty) $ do
         let mbReq = decodeRequest bytes
         case mbReq of
-            Just req    -> handleWellformedRequest h world $ "Handling " ++ (show req)
+            Just req    -> handleWellformedRequest h world req
             Nothing     -> handleMalformedRequest h bytes
     
     -- recurse to execute several commands over same connection
     commandProcessor h world
 
-handleWellformedRequest :: Handle -> HistoricalTickDataMap -> String -> IO ()
-handleWellformedRequest h world msg = 
-    print msg >> L.hPut h (encodeRequestAck $ RequestAck valid 0)
-
 handleMalformedRequest :: Handle -> L.ByteString -> IO ()
 handleMalformedRequest h reqBytes =
     print ("Invalid request format" ++ (show reqBytes)) >>
     L.hPut h (encodeRequestAck $ RequestAck invalid invalidFormatMsgCode)
+
+handleWellformedRequest :: Handle -> HistoricalTickDataMap -> Request -> IO ()
+handleWellformedRequest h world req = do 
+    print  $ "Handling " ++ (show req)
+    let ack = requestAck req
+    L.hPut h (encodeRequestAck ack)
+    when (ackOK ack == valid) $ processRequest h world req
+    where requestAck (Request symCode start end itrvl)
+            | start >= end  = RequestAck invalid invalidOffsetsMsgCode 
+            | itrvl <= 0    = RequestAck invalid invalidIntervalMsgCode
+            | codeToSymbol symCode == Nothing = 
+                RequestAck invalid invalidSymbolMsgCode
+            | otherwise     = RequestAck valid   validMsgCode
+
+processRequest :: Handle -> HistoricalTickDataMap -> Request -> IO ()
+processRequest = undefined
 
 {- Comments
     L.hGet always returns something - empty - when no bytes where sent b/c it uses

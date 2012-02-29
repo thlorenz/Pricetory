@@ -17,3 +17,5 @@ invalidFormatMsgCode   =  01 :: Word32
 invalidOffsetsMsgCode  =  02 :: Word32 
 invalidIntervalMsgCode =  03 :: Word32 
 invalidSymbolMsgCode   =  04 :: Word32 
+
+decodeRequestAckMessage code = Map.lookup code requestAckMessages 
