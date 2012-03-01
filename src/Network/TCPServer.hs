@@ -38,8 +38,8 @@ main = withSocketsDo $ do
     args <- cmdArgs arguments
     sock <- (listenOn . PortNumber . fromIntegral . port) args
     putStrLn $ "Getting world of tickdata from " ++ (dataFolder args)
-    -- worldOfTickData <- getWorldOfTickData (dataFolder args) [eurusd] 
-    let worldOfTickData = undefined    
+    worldOfTickData <- getWorldOfTickData (dataFolder args) [eurusd] 
+    -- let worldOfTickData = undefined    
 
     putStrLn $ "Listening on [" ++ (host args) ++ ":" ++ (show $ port args) ++ "]."
     sockHandler sock worldOfTickData 
@@ -92,9 +92,11 @@ handleWellformedRequest h world req = do
 
 processRequest :: Handle -> HistoricalTickDataMap -> Request -> IO ()
 processRequest h world (Request symCode start end itrvl) = do
-   print "Processing request" 
-   let bs = provide world symCode start end itrvl
-   print $ show bs
+    let dta = provide world symCode start end itrvl
+    print $ show dta
+    
+    send h (L.concat $ ptdByteStrings dta)
+ 
 
 {- Comments
     L.hGet always returns something - empty - when no bytes where sent b/c it uses

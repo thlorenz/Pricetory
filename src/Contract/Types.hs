@@ -46,7 +46,15 @@ data HistoricalTickData = HistoricalTickData
 -- | Holds Historical Tick Data for all known symbols 
 data HistoricalTickDataMap = HistoricalTickDataMap 
     { historicalTickDataBySymbol :: Map.Map SymbolCode HistoricalTickData }
+    deriving Show
     
+data ProvidedTickData = ProvidedTickData
+    { ptdFromIndex   :: Int
+    , ptdToIndex     :: Int
+    , ptdKey         :: TimeInterval
+    , ptdByteStrings :: [L.ByteString]
+    } 
+
 -- | sizes in bytes
 wordSize       =  4 :: Int
 tickSize       =  2 * wordSize :: Int

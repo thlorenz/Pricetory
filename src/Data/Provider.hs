@@ -11,14 +11,19 @@ import Contract.Protocol (decodeTick)
 
 import Test.HUnit
 
-provide :: HistoricalTickDataMap -> SymbolCode -> TimeInterval -> TimeOffset -> TimeOffset -> [L.ByteString]
-provide allTickData code interval fromTime toTime = 
-    elems . ixmap (getIndex fromTime, getIndex toTime) id $ matchingTickData
+provide :: HistoricalTickDataMap -> SymbolCode -> TimeInterval -> TimeOffset -> TimeOffset -> ProvidedTickData 
+provide allTickData code fromTime toTime interval = 
+    ProvidedTickData fromIndex toIndex key byteStrings
     where 
+        fromIndex   =  getIndex fromTime
+        toIndex     =  getIndex toTime
+        key         =  negotiateUp interval (Map.keys tickDataForCode)
+        byteStrings =  elems . ixmap (fromIndex, toIndex) id $ matchingTickData
+
         getIndex = getIndexForTime startTime interval . fromIntegral
         startTime = timeOffset . decodeTick . (! 0) $ matchingTickData
+        
         matchingTickData = fromJust . Map.lookup key $ tickDataForCode 
-        key = negotiateUp interval (Map.keys tickDataForCode)
         tickDataForCode = tickDataByInterval . getAllHistTickDataForCode $ allTickData
         getAllHistTickDataForCode = fromJust . Map.lookup code . historicalTickDataBySymbol 
 

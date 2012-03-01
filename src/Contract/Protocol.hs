@@ -52,8 +52,7 @@ send = genericSend L.hPut
 genericRecv :: (Handle -> Int -> IO L.ByteString) -> Handle -> IO L.ByteString
 genericRecv get h = len >>= get h
     where len = liftM (fromIntegral . decodeWord32) . get h $ wordSize
-          decodeWord32 :: L.ByteString -> Word32
-          decodeWord32 = decode
+          decodeWord32 = decode :: L.ByteString -> Word32
 
 recv :: Handle -> IO L.ByteString
 recv = genericRecv L.hGet
@@ -113,6 +112,13 @@ decodeWord32s bs = map decode (chunk32s [] bs)
     where chunk32s xs bs = if L.null bs then reverse xs
                            else let (x, y) = L.splitAt 4 bs in chunk32s (x:xs) y 
                                     
+instance Show ProvidedTickData where
+    show x = "ProvidedTickData:" ++
+             "Ticks: " ++ (show ticks) ++
+             "[" ++ (show $ ptdFromIndex x) ++ ", " ++ (show $ ptdToIndex x) ++ "] " ++
+             "Key: " ++ (show $ ptdKey x)
+        where ticks = map decodeTick $ ptdByteStrings x
+
 -- ------------ TESTS -------------
 
 instance Arbitrary Header where

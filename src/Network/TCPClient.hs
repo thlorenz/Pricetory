@@ -49,12 +49,14 @@ sockHandler h = do
     -- messages are in binary format
     hSetBinaryMode h True
 
-    let hdr = encodeRequest (Request 1 1 2 1)
+    let hdr = encodeRequest (Request 1 1 200 50)
     send h hdr
     
     bs <- recv h
     let ack = decodeRequestAck bs 
     print ack
+
+    recv h >>= print
 
 
 {- Smarter way to forkIO
