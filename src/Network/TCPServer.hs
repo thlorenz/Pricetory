@@ -14,10 +14,12 @@ import Control.Monad (liftM, when)
 
 import Data.Sampler (getWorldOfTickData)
 
-import Contract.Protocol (requestSize, decodeRequest, encodeRequestAck, invalid, valid) 
+import Contract.Protocol (send, recv, requestSize, decodeRequest, encodeRequestAck, invalid, valid) 
 import Contract.Types
 import Contract.Symbols
 import Contract.RequestAckMessages
+
+import Data.Provider (provide)
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
@@ -59,7 +61,7 @@ sockHandler sock world = do
 
 commandProcessor :: Handle -> HistoricalTickDataMap -> IO () 
 commandProcessor h world = do
-    bytes <- L.hGet h requestSize
+    bytes <- recv h
 
     when (bytes /= L.empty) $ do
         let mbReq = decodeRequest bytes
@@ -73,13 +75,13 @@ commandProcessor h world = do
 handleMalformedRequest :: Handle -> L.ByteString -> IO ()
 handleMalformedRequest h reqBytes =
     print ("Invalid request format" ++ (show reqBytes)) >>
-    L.hPut h (encodeRequestAck $ RequestAck invalid invalidFormatMsgCode)
+    send h (encodeRequestAck $ RequestAck invalid invalidFormatMsgCode)
 
 handleWellformedRequest :: Handle -> HistoricalTickDataMap -> Request -> IO ()
 handleWellformedRequest h world req = do 
     print  $ "Handling " ++ (show req)
     let ack = requestAck req
-    L.hPut h (encodeRequestAck ack)
+    send h (encodeRequestAck ack)
     when (ackOK ack == valid) $ processRequest h world req
     where requestAck (Request symCode start end itrvl)
             | start >= end  = RequestAck invalid invalidOffsetsMsgCode 
@@ -89,7 +91,10 @@ handleWellformedRequest h world req = do
             | otherwise     = RequestAck valid   validMsgCode
 
 processRequest :: Handle -> HistoricalTickDataMap -> Request -> IO ()
-processRequest = undefined
+processRequest h world (Request symCode start end itrvl) = do
+   print "Processing request" 
+   let bs = provide world symCode start end itrvl
+   print $ show bs
 
 {- Comments
     L.hGet always returns something - empty - when no bytes where sent b/c it uses

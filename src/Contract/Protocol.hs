@@ -5,6 +5,8 @@ module Contract.Protocol ( magicNumber
                          , fileHeaderSize
                          , invalid
                          , valid
+                         , send
+                         , recv
                          , encodeHeader
                          , decodeHeader
                          , encodeRequest
@@ -19,10 +21,11 @@ module Contract.Protocol ( magicNumber
 
 import qualified Data.ByteString.Lazy as L;
 import qualified Data.ByteString as B;
-import Data.Binary
+import Data.Binary (encode, decode)
 import Data.Maybe (fromJust)
+import Data.Word (Word32)
 
-import Foreign.Storable (sizeOf)
+import System.IO (Handle)
 
 import Contract.Types
 import Contract.Constants
@@ -33,6 +36,25 @@ magicNumber    = 0x54484f52    :: Word32
 
 invalid =  0 :: Word32
 valid   =  1 :: Word32
+
+-- | Sends length of byte string to send followed by that byte string
+genericSend :: (Handle -> L.ByteString -> IO ()) -> Handle -> L.ByteString -> IO ()
+genericSend put h bs = put h bytesToSend   
+    where len = encode ((fromIntegral . L.length) bs :: Word32)
+          bytesToSend = L.concat [len, bs] 
+
+send :: Handle -> L.ByteString -> IO ()
+send = genericSend L.hPut
+
+-- | Receives length of byte string and then the byte string itself
+genericRecv :: (Handle -> Int -> IO L.ByteString) -> Handle -> IO L.ByteString
+genericRecv get h = do
+    lenBS <- get h wordSize 
+    let len = fromIntegral (decode lenBS :: Word32)
+    get h len
+
+recv :: Handle -> IO L.ByteString
+recv = genericRecv L.hGet
 
 encodeHeader :: Header -> L.ByteString
 encodeHeader = L.concat . map encode . unfoldHeader

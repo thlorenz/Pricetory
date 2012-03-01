@@ -15,10 +15,11 @@ import Network (connectTo, accept, PortID(..), withSocketsDo)
 import Control.Exception (finally, catch, Exception(..))
 import Control.Concurrent (forkIO)
 import Control.Monad (liftM)
+import Data.Word (Word32)
 
 import Contract.Types
 import Contract.Constants
-import Contract.Protocol (encodeRequest, decodeRequestAck)
+import Contract.Protocol (send, recv, encodeRequest, decodeRequestAck)
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
@@ -49,9 +50,9 @@ sockHandler h = do
     hSetBinaryMode h True
 
     let hdr = encodeRequest (Request 1 1 2 1)
-    L.hPut h hdr
+    send h hdr
     
-    bs <- L.hGet h requestAckSize
+    bs <- recv h
     let ack = decodeRequestAck bs 
     print ack
 
