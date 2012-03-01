@@ -25,6 +25,8 @@ import Data.Binary (encode, decode)
 import Data.Maybe (fromJust)
 import Data.Word (Word32)
 
+import Control.Monad (liftM)
+
 import System.IO (Handle)
 
 import Contract.Types
@@ -32,7 +34,7 @@ import Contract.Constants
 
 import Test.QuickCheck
 
-magicNumber    = 0x54484f52    :: Word32
+magicNumber = 0x54484f52 :: Word32
 
 invalid =  0 :: Word32
 valid   =  1 :: Word32
@@ -48,10 +50,10 @@ send = genericSend L.hPut
 
 -- | Receives length of byte string and then the byte string itself
 genericRecv :: (Handle -> Int -> IO L.ByteString) -> Handle -> IO L.ByteString
-genericRecv get h = do
-    lenBS <- get h wordSize 
-    let len = fromIntegral (decode lenBS :: Word32)
-    get h len
+genericRecv get h = getLen >>= (get h)
+    where getLen = liftM (fromIntegral . decodeWord32) . get h $ wordSize
+          decodeWord32 :: L.ByteString -> Word32
+          decodeWord32 = decode
 
 recv :: Handle -> IO L.ByteString
 recv = genericRecv L.hGet
