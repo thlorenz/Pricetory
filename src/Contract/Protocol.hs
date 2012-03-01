@@ -95,7 +95,15 @@ encodeTick x = L.concat [encode $ timeOffset x, encode $ rate x]
 
 decodeTick :: L.ByteString -> Tick
 decodeTick = tickFromWords . decodeWord32s 
-    where tickFromWords [timeOffset, rate] = Tick timeOffset rate
+
+tickFromWords [timeOffset, rate] = Tick timeOffset rate
+
+decodeTicks :: L.ByteString -> [Tick]
+decodeTicks = (ticksFromWords [] . decodeWord32s)
+    where ticksFromWords ticks [] = reverse ticks
+          ticksFromWords ticks xs = ticksFromWords (newTick:ticks) (snd splits)
+              where newTick = tickFromWords $ fst splits
+                    splits = splitAt 2 xs
 
 headerFromWord32s :: [Word32] -> Maybe Header
 headerFromWord32s [symbol, offset, interval, points] = 
@@ -113,10 +121,10 @@ decodeWord32s bs = map decode (chunk32s [] bs)
                            else let (x, y) = L.splitAt 4 bs in chunk32s (x:xs) y 
                                     
 instance Show ProvidedTickData where
-    show x = "ProvidedTickData:" ++
+    show x = "ProvidedTickData: {" ++
              "Ticks: " ++ (show ticks) ++
              "[" ++ (show $ ptdFromIndex x) ++ ", " ++ (show $ ptdToIndex x) ++ "] " ++
-             "Key: " ++ (show $ ptdKey x)
+             "Key: " ++ (show $ ptdKey x) ++ "}"
         where ticks = map decodeTick $ ptdByteStrings x
 
 -- ------------ TESTS -------------
@@ -137,12 +145,17 @@ prop_header_encode_decode_roundtrippable :: Header -> Property
 prop_header_encode_decode_roundtrippable hdr =
     property $ (fromJust . decodeHeader . encodeHeader) hdr == hdr
 
-prop_ticks_encode_decode_roundtrippable :: Tick -> Property
-prop_ticks_encode_decode_roundtrippable tick = 
+prop_tick_encode_decode_roundtrippable :: Tick -> Property
+prop_tick_encode_decode_roundtrippable tick = 
     property $ (decodeTick . encodeTick) tick == tick
+
+prop_ticks_encode_decode_roundtrippable :: [Tick] -> Property
+prop_ticks_encode_decode_roundtrippable ticks = 
+    property $ (decodeTicks . L.concat . map encodeTick) ticks == ticks
 
 runTests = do 
     quickCheck prop_header_encode_decode_roundtrippable
+    quickCheck prop_tick_encode_decode_roundtrippable
     quickCheck prop_ticks_encode_decode_roundtrippable
 
     
