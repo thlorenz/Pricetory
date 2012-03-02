@@ -7,4 +7,5 @@ main = do
     updateGlobalLogger rootLoggerName (addHandler hdlr)
 
     debugM "Main.Logger" "This shows in a growl message with Terminal Icon" 
+    errorM "Main.Logger" "This shows in a sticky growl message" 
 

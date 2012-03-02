@@ -5,9 +5,7 @@ import System.Log.Handler (setFormatter)
 import System.Log.Formatter
 import System.Cmd
 
-import Utils.GrowlNotifyHandler
-
-log = do
+main = do
     s <- openlog "SyslogStuff" [PID] USER DEBUG
     updateGlobalLogger rootLoggerName (addHandler s)
 
@@ -32,8 +30,3 @@ log = do
     updateGlobalLogger "Spike.Logger" (addHandler h)
 
     debugM "Spike.Logger" "This goes into syslog, stderr and debug.log"
-
-cmd = do 
-    rawSystem "ls" [] >>= print
-    rawSystem "growlnotify" ["-m", "Hello Note"]
-

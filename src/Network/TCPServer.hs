@@ -9,6 +9,9 @@ import Network (listenOn, accept, PortID(..), Socket, withSocketsDo)
 import System.Console.CmdArgs
 import System.IO (Handle)
 
+import System.Log.Logger
+import System.Log.Handler.GrowlNotifyHandler
+
 import Control.Concurrent (forkIO)
 import Control.Monad (liftM, when)
 
@@ -26,12 +29,14 @@ import Network.TCPCommon (initHandle)
 data Arguments = Arguments { host       :: String
                            , port       :: Int
                            , dataFolder :: FilePath
+                           , loggingPriority :: Int
                            } deriving (Show, Data, Typeable)
 
 arguments = Arguments
     { host = "localhost" &= typ "String" &= help "Host server is running on"
     , port = 3000        &= typ "Int"    &= help "Port server is listening on for incoming connections"
     , dataFolder = defFolder &= typ "FilePath" &= help "The folder in which the data resides"
+    , loggingPriority = 0 &= typ "Priority" &= help "The priority level to log on"
     } &= summary "Pricetory TCP Server version 0.0.1"
     where defFolder = "/Users/thlorenz/dev/data/Pricetory"
 
@@ -41,7 +46,6 @@ main = withSocketsDo $ do
     sock <- (listenOn . PortNumber . fromIntegral . port) args
     putStrLn $ "Getting world of tickdata from " ++ (dataFolder args)
     worldOfTickData <- getWorldOfTickData (dataFolder args) [eurusd] 
-    -- let worldOfTickData = undefined    
 
     putStrLn $ "Listening on [" ++ (host args) ++ ":" ++ (show $ port args) ++ "]."
     sockHandler sock worldOfTickData 
