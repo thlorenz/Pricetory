@@ -19,7 +19,7 @@ import Data.Word (Word32)
 
 import Contract.Types
 import Contract.Constants
-import Contract.Protocol (send, recv, encodeRequest, decodeRequestAck, decodeTicks)
+import Contract.Protocol (send, recv, valid, encodeRequest, decodeRequestAck, decodeTicks)
 
 import Network.TCPCommon (initHandle)
 
@@ -47,13 +47,19 @@ sockHandler h = do
     putStrLn "Got socket connection"
     initHandle h
 
-    (send h . encodeRequest) (Request 1 1 200 50)
+    sendReq h $ Request 1 500 1200 300 
     
+    ack <- recvReqAck h
+    if (ackOK ack == valid) then recvTicks h else return ()
+
+sendReq h = send h . encodeRequest
+
+recvReqAck h = do 
     ack <- (liftM decodeRequestAck . recv) h
     print ack
+    return ack
 
-    recv h >>= print . show . decodeTicks
-
+recvTicks h = recv h >>= print . show . decodeTicks
 
 {- Smarter way to forkIO
 spawnThread :: IO () -> IO ThreadId
