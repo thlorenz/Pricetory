@@ -7,7 +7,7 @@ import qualified Data.ByteString.Lazy as L
 import Network (listenOn, accept, PortID(..), Socket, withSocketsDo)
 
 import System.Console.CmdArgs
-import System.IO (hSetBuffering, hSetBinaryMode, BufferMode(..), Handle, FilePath)
+import System.IO (Handle)
 
 import Control.Concurrent (forkIO)
 import Control.Monad (liftM, when)
@@ -20,6 +20,8 @@ import Contract.Symbols
 import Contract.RequestAckMessages
 
 import Data.Provider (provide)
+
+import Network.TCPCommon (initHandle)
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
@@ -49,10 +51,7 @@ sockHandler sock world = do
     (handle, host, port) <- accept sock
     putStrLn $ "Accepted [" ++ (show host) ++ ":" ++ (show port) ++ "]."
     
-    -- no buffering for client's socket handle
-    hSetBuffering handle NoBuffering
-    -- messages are in binary format
-    hSetBinaryMode handle True
+    initHandle handle
 
     forkIO $ commandProcessor handle world
 

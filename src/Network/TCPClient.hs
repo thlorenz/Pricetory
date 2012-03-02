@@ -7,7 +7,7 @@ import Prelude hiding (catch)
 import qualified Data.ByteString.Lazy as L;
 
 import System.Console.CmdArgs
-import System.IO (hSetBuffering, hSetBinaryMode, BufferMode(..), Handle, FilePath, hClose)
+import System.IO (Handle, FilePath, hClose)
 import System.IO.Error (isEOFError)
 
 import Network (connectTo, accept, PortID(..), withSocketsDo)
@@ -20,6 +20,8 @@ import Data.Word (Word32)
 import Contract.Types
 import Contract.Constants
 import Contract.Protocol (send, recv, encodeRequest, decodeRequestAck, decodeTicks)
+
+import Network.TCPCommon (initHandle)
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
@@ -42,18 +44,12 @@ main = withSocketsDo $ do
 
 sockHandler :: Handle -> IO ()
 sockHandler h = do
-    putStrLn "Handling socket connection"
-    
-    -- no buffering for client's socket handle
-    hSetBuffering h NoBuffering
-    -- messages are in binary format
-    hSetBinaryMode h True
+    putStrLn "Got socket connection"
+    initHandle h
 
-    let hdr = encodeRequest (Request 1 1 200 50)
-    send h hdr
+    (send h . encodeRequest) (Request 1 1 200 50)
     
-    bs <- recv h
-    let ack = decodeRequestAck bs 
+    ack <- (liftM decodeRequestAck . recv) h
     print ack
 
     recv h >>= print . show . decodeTicks
