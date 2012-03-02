@@ -21,30 +21,39 @@ import Contract.Types
 import Contract.Constants
 import Contract.Protocol (send, recv, valid, encodeRequest, decodeRequestAck, decodeTicks)
 
-import Network.TCPCommon (initHandle)
+import Network.TCPCommon
+import Import.SystemLog
 
-data Arguments = Arguments { host       :: String
-                           , port       :: Int
+data Arguments = Arguments { host            :: String
+                           , port            :: Int
+                           , loggingPriority :: String
                            } deriving (Show, Data, Typeable)
 
 arguments = Arguments
     { host = "localhost" &= typ "String" &= help "Host name of server to connect to."
     , port = 3000        &= typ "Int"    &= help "Port on which to connect to server."
+    , loggingPriority = "debug" &= typ "String" &= help "The priority level to log on"
     } &= summary "Pricetory TCP Client version 0.0.1"
 
+loggerName = "Client"
+logd = debugM loggerName
+logi = infoM  loggerName
+loge = errorM loggerName
 
 main :: IO ()
 main = withSocketsDo $ do
     args <- cmdArgs arguments
+    initLogger loggerName . loggingPriority $ args
+
     handle <- connectTo (host args) $ (PortNumber . fromIntegral . port) args
     sockHandler handle `catch` handler `finally` hClose handle
         where handler e
                 | isEOFError e = return ()
-                | otherwise    = print e
+                | otherwise    = loge $ show e
 
 sockHandler :: Handle -> IO ()
 sockHandler h = do
-    putStrLn "Got socket connection"
+    logi "Got socket connection"
     
     initHandle h
 
@@ -57,10 +66,10 @@ sendReq h = send h . encodeRequest
 
 recvReqAck h = do 
     ack <- (liftM decodeRequestAck . recv) h
-    print ack
+    logd $ show ack
     return ack
 
-recvTicks h = recv h >>= print . show . decodeTicks
+recvTicks h = recv h >>= logd . show . decodeTicks
 
 {- Smarter way to forkIO
 spawnThread :: IO () -> IO ThreadId

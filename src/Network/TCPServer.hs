@@ -9,8 +9,7 @@ import Network (listenOn, accept, PortID(..), Socket, withSocketsDo)
 import System.Console.CmdArgs
 import System.IO (Handle)
 
-import System.Log.Logger
-import System.Log.Handler.GrowlNotifyHandler
+import Import.SystemLog 
 
 import Control.Concurrent (forkIO)
 import Control.Monad (liftM, when)
@@ -24,36 +23,45 @@ import Contract.RequestAckMessages
 
 import Data.Provider (provide)
 
-import Network.TCPCommon (initHandle)
+import Network.TCPCommon
+import Import.SystemLog
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
                            , dataFolder :: FilePath
-                           , loggingPriority :: Int
+                           , loggingPriority :: String
                            } deriving (Show, Data, Typeable)
 
 arguments = Arguments
     { host = "localhost" &= typ "String" &= help "Host server is running on"
     , port = 3000        &= typ "Int"    &= help "Port server is listening on for incoming connections"
     , dataFolder = defFolder &= typ "FilePath" &= help "The folder in which the data resides"
-    , loggingPriority = 0 &= typ "Priority" &= help "The priority level to log on"
+    , loggingPriority = "debug" &= typ "String" &= help "The priority level to log on"
     } &= summary "Pricetory TCP Server version 0.0.1"
     where defFolder = "/Users/thlorenz/dev/data/Pricetory"
+
+loggerName = "Server"
+logd = debugM loggerName
+logi = infoM  loggerName
+loge = errorM loggerName
 
 main :: IO ()
 main = withSocketsDo $ do
     args <- cmdArgs arguments
     sock <- (listenOn . PortNumber . fromIntegral . port) args
-    putStrLn $ "Getting world of tickdata from " ++ (dataFolder args)
+    initLogger loggerName . loggingPriority $ args
+
+    logi $ "Getting world of tickdata from " ++ (dataFolder args)
     worldOfTickData <- getWorldOfTickData (dataFolder args) [eurusd] 
 
-    putStrLn $ "Listening on [" ++ (host args) ++ ":" ++ (show $ port args) ++ "]."
+    logi $ "Listening on [" ++ (host args) ++ ":" ++ (show $ port args) ++ "]."
+
     sockHandler sock worldOfTickData 
 
 sockHandler :: Socket -> HistoricalTickDataMap -> IO ()
 sockHandler sock world = do
     (handle, host, port) <- accept sock
-    putStrLn $ "Accepted [" ++ (show host) ++ ":" ++ (show port) ++ "]."
+    logi $ "Accepted [" ++ (show host) ++ ":" ++ (show port) ++ "]."
     
     initHandle handle
 
@@ -77,12 +85,12 @@ commandProcessor h world = do
 
 handleMalformedRequest :: Handle -> L.ByteString -> IO ()
 handleMalformedRequest h reqBytes =
-    print ("Invalid request format" ++ (show reqBytes)) >>
+    loge ("Invalid request format" ++ (show reqBytes)) >>
     send h (encodeRequestAck $ RequestAck invalid invalidFormatMsgCode)
 
 handleWellformedRequest :: Handle -> HistoricalTickDataMap -> Request -> IO ()
 handleWellformedRequest h world req = do 
-    print  $ "Handling " ++ (show req)
+    logd  $ "Handling " ++ (show req)
     let ack = requestAck req
     send h (encodeRequestAck ack)
     when (ackOK ack == valid) $ processRequest h world req
@@ -96,7 +104,7 @@ handleWellformedRequest h world req = do
 processRequest :: Handle -> HistoricalTickDataMap -> Request -> IO ()
 processRequest h world (Request symCode start end itrvl) = do
     let dta = provide world symCode start end itrvl
-    print $ show dta
+    logd $ show dta
     
     send h (L.concat $ ptdByteStrings dta)
  

@@ -1,9 +1,9 @@
 import System.Log.Logger
-import System.Log.Handler.Syslog
-import System.Log.Handler.Simple
+import System.Log.Handler.Simple (fileHandler)
 import System.Log.Handler (setFormatter)
-import System.Log.Formatter
-import System.Cmd
+import System.Log.Formatter (simpleLogFormatter)
+
+import System.Log.Handler.Syslog
 
 main = do
     s <- openlog "SyslogStuff" [PID] USER DEBUG
