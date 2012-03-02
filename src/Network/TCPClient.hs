@@ -56,11 +56,16 @@ sockHandler h = do
     logi "Got socket connection"
     
     initHandle h
+    fireRequest h
 
+fireRequest :: Handle -> IO ()
+fireRequest h = do
     sendReq h $ Request 1 500 1200 300 
-    
     ack <- recvReqAck h
     if (ackOK ack == valid) then recvTicks h else return ()
+
+    fireRequest h
+
 
 sendReq h = send h . encodeRequest
 
