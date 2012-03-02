@@ -45,6 +45,7 @@ main = withSocketsDo $ do
 sockHandler :: Handle -> IO ()
 sockHandler h = do
     putStrLn "Got socket connection"
+    
     initHandle h
 
     sendReq h $ Request 1 500 1200 300 
