@@ -1,5 +1,5 @@
 import System.Log.Logger
-import Utils.GrowlNotifyHandler
+import System.Log.Handler.GrowlNotifyHandler
 
 main = do 
     updateGlobalLogger "Main.Logger" (setLevel DEBUG)
