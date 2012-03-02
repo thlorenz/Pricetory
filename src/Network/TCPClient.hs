@@ -19,7 +19,7 @@ import Data.Word (Word32)
 
 import Contract.Types
 import Contract.Constants
-import Contract.Protocol (send, recv, encodeRequest, decodeRequestAck)
+import Contract.Protocol (send, recv, encodeRequest, decodeRequestAck, decodeTicks)
 
 data Arguments = Arguments { host       :: String
                            , port       :: Int
@@ -56,7 +56,7 @@ sockHandler h = do
     let ack = decodeRequestAck bs 
     print ack
 
-    recv h >>= print
+    recv h >>= print . show . decodeTicks
 
 
 {- Smarter way to forkIO

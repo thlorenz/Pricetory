@@ -17,6 +17,7 @@ module Contract.Protocol ( magicNumber
                          , decodeFileHeader
                          , encodeTick
                          , decodeTick   
+                         , decodeTicks
                          ) where
 
 import qualified Data.ByteString.Lazy as L;
@@ -122,8 +123,8 @@ decodeWord32s bs = map decode (chunk32s [] bs)
                                     
 instance Show ProvidedTickData where
     show x = "ProvidedTickData: {" ++
-             "Ticks: " ++ (show ticks) ++
-             "[" ++ (show $ ptdFromIndex x) ++ ", " ++ (show $ ptdToIndex x) ++ "] " ++
+             "Ticks: " ++ (show . length) ticks ++
+             " indexes [" ++ (show $ ptdFromIndex x) ++ ", " ++ (show $ ptdToIndex x) ++ "] " ++
              "Key: " ++ (show $ ptdKey x) ++ "}"
         where ticks = map decodeTick $ ptdByteStrings x
 
