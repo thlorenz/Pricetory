@@ -15,7 +15,9 @@ import Network (connectTo, accept, PortID(..), withSocketsDo)
 import Control.Exception (finally, catch, Exception(..))
 import Control.Concurrent (forkIO)
 import Control.Monad (liftM)
+
 import Data.Word (Word32)
+import Data.Time.Clock (getCurrentTime, diffUTCTime, UTCTime)
 
 import Contract.Types
 import Contract.Constants
@@ -54,18 +56,25 @@ main = withSocketsDo $ do
 sockHandler :: Handle -> IO ()
 sockHandler h = do
     logi "Got socket connection"
-    
     initHandle h
-    fireRequest h
+    getCurrentTime >>= fireRequest h 0 
 
-fireRequest :: Handle -> IO ()
-fireRequest h = do
+fireRequest :: Handle -> Int -> UTCTime -> IO ()
+fireRequest h reqNum startTime= do
     sendReq h $ Request 1 500 1200 300 
     ack <- recvReqAck h
     if (ackOK ack == valid) then recvTicks h else return ()
 
-    fireRequest h
+    if (reqNum == 10000)
+        then logStats reqNum startTime >> getCurrentTime >>= fireRequest h 0
+        else fireRequest h (reqNum + 1) startTime
 
+logStats :: Int -> UTCTime -> IO ()
+logStats reqNum startTime = do
+    currentTime <- getCurrentTime
+    let secs = diffUTCTime currentTime startTime
+    logi $ show reqNum ++ " request where fullfilled in " ++ show secs ++ " seconds."
+    
 
 sendReq h = send h . encodeRequest
 

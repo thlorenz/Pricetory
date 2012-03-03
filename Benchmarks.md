@@ -21,3 +21,10 @@ Generating data points and writing to file:
     |---------------|---------------|----------------|
     | Points/second | 77600         | 9930.5         | 
     
+## Early server performance
+
+- serving same data (about 4 ticks) every time
+- ran 12 concurrent clients
+- it took 42s for 10,000 requests to be fullfilled for each client
+- this means that 120,000 requests were served in 42s (2857 req/sec)
+
