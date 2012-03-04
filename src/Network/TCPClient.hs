@@ -49,23 +49,25 @@ loge = errorM loggerName
 main :: IO ()
 main = withSocketsDo $ do
     args <- cmdArgs arguments
+
     initLogger loggerName . loggingPriority $ args
 
-    mapM (\clientId -> forkIO $ launchClient (host args) (portId args) clientId) 
-         [1 .. clients args - 1]
+    -- launch all but last client on separate threads
+    mapM (forkIO . launchClient (host args) (portId args)) [1 .. clients args - 1]
 
-    -- launch last client on main thread to keep it from exiting and killing all child 
+    -- launch last client on main thread to keep it alive and thus from killing all child 
     -- processes
     launchClient (host args) (portId args) (clients args)
+
     where portId = PortNumber . fromIntegral . port
 
-launchClient :: HostName -> PortID -> Int -> IO ()
-launchClient hostAddress portId clientId = do
-    handle <- connectTo hostAddress portId
-    sockHandler handle clientId `catch` handler `finally` hClose handle
-    where handler e
-            | isEOFError e = return ()
-            | otherwise    = loge $ show e
+          launchClient :: HostName -> PortID -> Int -> IO ()
+          launchClient hostAddress portId clientId = do
+              handle <- connectTo hostAddress portId
+              sockHandler handle clientId `catch` handler `finally` hClose handle
+              where handler e
+                      | isEOFError e = return ()
+                      | otherwise    = loge $ show e
 
 sockHandler :: Handle -> Int -> IO ()
 sockHandler h clientId = do

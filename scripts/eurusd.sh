@@ -5,6 +5,6 @@ cd $script_dir/../src/
 
 runghc DataGeneration/RandomDataGenerator.hs \
   -s "EURUSD" \
-  -p 100000 \
+  -p 31536000 \
   -d /Users/thlorenz/dev/data/Pricetory \
   -r 11
