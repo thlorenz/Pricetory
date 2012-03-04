@@ -7,11 +7,12 @@ import Import.SystemLog
 
 import Data.Char
 
+growlLoggerPriority = DEBUG
 initHandle ::  Handle -> IO ()
 initHandle h = hSetBuffering h NoBuffering >> hSetBinaryMode h True
 
 initLogger loggerName p = do
     updateGlobalLogger loggerName (setLevel prio)
-    updateGlobalLogger rootLoggerName . addHandler . growlNotifyHandler loggerName $ INFO
+    updateGlobalLogger rootLoggerName . addHandler . growlNotifyHandler loggerName $ growlLoggerPriority
     where prio = stringToPriority p
           stringToPriority = read . map toUpper :: String -> Priority

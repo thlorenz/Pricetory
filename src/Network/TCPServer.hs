@@ -12,7 +12,7 @@ import System.IO (Handle)
 import Import.SystemLog 
 
 import Control.Concurrent (forkIO)
-import Control.Monad (liftM, when)
+import Control.Monad (when)
 
 import Data.Sampler (getWorldOfTickData)
 

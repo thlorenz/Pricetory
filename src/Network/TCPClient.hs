@@ -24,6 +24,7 @@ import Contract.Constants
 import Contract.Protocol (send, recv, valid, encodeRequest, decodeRequestAck, decodeTicks)
 
 import Network.TCPCommon
+import Network.RandomRequestGenerator (getRandomRequests)
 import Import.SystemLog
 
 data Arguments = Arguments { host            :: String
@@ -57,17 +58,19 @@ sockHandler :: Handle -> IO ()
 sockHandler h = do
     logi "Got socket connection"
     initHandle h
-    getCurrentTime >>= fireRequest h 0 
+    randomRequests <- getRandomRequests 
+    getCurrentTime >>= fireRequest h 0 randomRequests
 
-fireRequest :: Handle -> Int -> UTCTime -> IO ()
-fireRequest h reqNum startTime= do
-    sendReq h $ Request 1 500 1200 300 
+fireRequest :: Handle -> Int -> [Request] -> UTCTime -> IO ()
+fireRequest h reqNum (req:reqs) startTime = do
+    logd $ "Sending: " ++ (show req)
+    sendReq h req
     ack <- recvReqAck h
     if (ackOK ack == valid) then recvTicks h else return ()
 
     if (reqNum == 10000)
-        then logStats reqNum startTime >> getCurrentTime >>= fireRequest h 0
-        else fireRequest h (reqNum + 1) startTime
+        then logStats reqNum startTime >> getCurrentTime >>= fireRequest h 0 reqs
+        else fireRequest h (reqNum + 1) reqs startTime
 
 logStats :: Int -> UTCTime -> IO ()
 logStats reqNum startTime = do
