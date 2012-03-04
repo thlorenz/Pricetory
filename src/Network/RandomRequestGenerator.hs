@@ -33,7 +33,7 @@ bounds =  -- (replicate oneSecProb secondsBnds) ++
     where
         secondsBnds = Bound (1 :: Word32) (15 * secondsPerMinute)
         minutesBnds = Bound secondsPerMinute (600 * secondsPerMinute)
-        hoursBnds   = Bound (secondsPerDay * daysPerYear) (secondsPerDay * daysPerYear)
+        hoursBnds   = Bound secondsPerHour (daysPerYear * hoursPerDay)
 
 getRandomRequests :: IO [Request]
 getRandomRequests = liftM getRequestStream $ getStdGen
