@@ -7,7 +7,7 @@ import Import.SystemLog
 
 import Data.Char
 
-growlLoggerPriority = INFO
+growlLoggerPriority = ALERT
 
 initHandle ::  Handle -> IO ()
 initHandle h = hSetBuffering h NoBuffering >> hSetBinaryMode h True
