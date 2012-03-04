@@ -3,11 +3,12 @@ module Data.Provider (provide) where
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Map as Map
 import Text.Printf
-import Data.Array (elems, ixmap, listArray, (!))
+import Data.Array (elems, ixmap, listArray, (!), bounds)
 import Data.List (sort)
 import Data.Maybe
 import Contract.Types
 import Contract.Protocol (decodeTick)
+import Control.Arrow ((>>>))
 
 import Test.HUnit
 
@@ -17,15 +18,22 @@ provide allTickData code fromTime toTime interval =
     where 
         fromIndex   =  getIndex fromTime
         toIndex     =  getIndex toTime
+        (min, max)  =  bounds matchingTickData 
         key         =  negotiateUp interval (Map.keys tickDataForCode)
         byteStrings =  elems . ixmap (fromIndex, toIndex) id $ matchingTickData
 
-        getIndex = getIndexForTime startTime interval . fromIntegral
+        getIndex = fromIntegral 
+                   >>> getIndexForTime startTime interval 
+                   >>> validIndex (bounds matchingTickData) 
+
         startTime = timeOffset . decodeTick . (! 0) $ matchingTickData
         
         matchingTickData = fromJust . Map.lookup key $ tickDataForCode 
         tickDataForCode = tickDataByInterval . getAllHistTickDataForCode $ allTickData
         getAllHistTickDataForCode = fromJust . Map.lookup code . historicalTickDataBySymbol 
+
+validIndex :: (Int, Int) -> Int -> Int
+validIndex (minIndex, maxIndex) index = max minIndex . min maxIndex $ index 
 
 negotiateUp :: (Ord a) => a -> [a] -> a
 negotiateUp desired availables
@@ -71,9 +79,22 @@ getIndexForTimeTests = map (\(stm, intrv, dtm, res) -> assertEqual
     , ( 3,         5,        7,           0       ) -- [3*,8 ,13] 
     ]
 
+
+validIndexTests = map (\(min, max, desired, expected) -> assertEqual
+    (printf "validIndex min: %d, max: %d, desired: %d = %d" 
+            min max desired expected) expected $ validIndex (min, max) desired)
+    -- Min  Max     Desired Expected
+    [ (0,   0,      0,      0)
+    , (0,   0,      1,      0)
+    , (0,   5,      4,      4)
+    , (4,   6,      3,      4)
+    , (4,   6,      8,      6)
+    ]
+
 tests = TestList $ map TestCase $
     negotiateUpTests ++
-    getIndexForTimeTests
+    getIndexForTimeTests ++
+    validIndexTests 
 
 runTests = runTestTT tests
 
