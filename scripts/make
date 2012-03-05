@@ -2,10 +2,9 @@
 
 script_dir=$(dirname $0)
 
+echo "Building Server and Client ..."
+
 cd $script_dir/../src/
 
-$script_dir/clean
-ghc -o server Network/TCPServer.hs -main-is Network.TCPServer.main
-
-$script_dir/clean
-ghc -o client Network/TCPClient.hs -main-is Network.TCPClient.main
+ghc -o ../build/server Network/TCPServer.hs -main-is Network.TCPServer.main
+ghc -o ../build/client Network/TCPClient.hs -main-is Network.TCPClient.main

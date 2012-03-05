@@ -2,6 +2,8 @@
 
 script_dir=$(dirname $0)
 
+echo "Cleaning ..."
+
 cd $script_dir/../src/
 
 find . -name "*.o" -exec rm {} \;
