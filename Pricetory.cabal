@@ -20,7 +20,8 @@ Executable Pricetory
   -- .hs or .lhs file containing the Main module.
   Main-is: src/Network/TCPServer.hs
   
-  Build-depends: binary >= 0.5, 
+  Build-depends: base,
+                 binary >= 0.5, 
                  cmdargs >= 0.9,
                  hslogger >= 1.1
   
