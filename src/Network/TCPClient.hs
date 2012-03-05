@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Network.Client where
+module Network.TCPClient where
 
 import Prelude hiding (catch)
 
