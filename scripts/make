@@ -4,5 +4,8 @@ script_dir=$(dirname $0)
 
 cd $script_dir/../src/
 
+$script_dir/clean
 ghc -o server Network/TCPServer.hs -main-is Network.TCPServer.main
+
+$script_dir/clean
 ghc -o client Network/TCPClient.hs -main-is Network.TCPClient.main
