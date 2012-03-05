@@ -6,8 +6,8 @@ echo "Building Server and Client ..."
 
 cd $script_dir/../src/
 
-ghc -O2 -optc-O2 -rtsopts -prof -auto-all -o \
+ghc -O2 -optc-O2 -rtsopts -fforce-recomp -prof -auto-all -o \
     ../build/server Network/TCPServer.hs -main-is Network.TCPServer.main
 
-ghc -O2 -optc-O2 -rtsopts -prof -auto-all -o \
+ghc -O2 -optc-O2 -rtsopts -fforce-recomp -prof -auto-all -o \
     ../build/client Network/TCPClient.hs -main-is Network.TCPClient.main
