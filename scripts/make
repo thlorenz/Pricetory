@@ -6,5 +6,5 @@ echo "Building Server and Client ..."
 
 cd $script_dir/../src/
 
-ghc -o ../build/server Network/TCPServer.hs -main-is Network.TCPServer.main
-ghc -o ../build/client Network/TCPClient.hs -main-is Network.TCPClient.main
+ghc -O2 -optc-O2 -o ../build/server Network/TCPServer.hs -main-is Network.TCPServer.main
+ghc -O2 -optc-O2 -o ../build/client Network/TCPClient.hs -main-is Network.TCPClient.main

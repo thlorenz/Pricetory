@@ -41,6 +41,8 @@ arguments = Arguments
     , clients = 1        &= typ "Int"    &= help "Number of concurrent clients to fire up."
     } &= summary "Pricetory TCP Client version 0.0.1"
 
+statsLogFrequency = 100
+
 tracing = False
 loggerName = "Client"
 logd = debugM loggerName
@@ -85,7 +87,7 @@ fireRequest h clientId reqNum (req:reqs) startTime = do
     ack <- recvReqAck h
     if (ackOK ack == valid) then recvTicks h else return ()
 
-    if (reqNum == 100)
+    if (reqNum == statsLogFrequency)
         then logStats clientId reqNum startTime 
              >>  getCurrentTime 
              >>= fireRequest h clientId 0 reqs
