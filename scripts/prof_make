@@ -1,0 +1,13 @@
+#!/bin/sh
+
+script_dir=$(dirname $0)
+
+echo "Building Server and Client ..."
+
+cd $script_dir/../src/
+
+ghc -O2 -optc-O2 -rtsopts -prof -o \
+    ../build/server Network/TCPServer.hs -main-is Network.TCPServer.main
+
+ghc -O2 -optc-O2 -rtsopts -prof -o \
+    ../build/client Network/TCPClient.hs -main-is Network.TCPClient.main
