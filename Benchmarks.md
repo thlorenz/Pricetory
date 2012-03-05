@@ -28,3 +28,28 @@ Generating data points and writing to file:
 - it took 42s for 10,000 requests to be fullfilled for each client
 - this means that 120,000 requests were served in 42s (2857 req/sec)
 
+## Performance when serving real data
+
+Data that is being served is distributed as follows:
+
+    Interval:       1 sec       1 min       1 hour
+    Probability:    5%          40%         35%
+    Timespan:       15 mins     600 mins    1 year
+    Read Ticks:     900         600         8750
+    Faults to Disk: N           N           Y 
+
+This shows that on average 3347.5 ticks are served each time
+(0.05 * 900 + 0.4 * 600 + 0.35 * 8750).
+
+- ran 120 concurrent clients
+- it took 320s (rough estimate) for 100 requests to be fullfilled for each client
+- this means that 12,000 requests were served in 320s (40 req/sec)
+- this is obviously much worse than the above benchmark that served 4 ticks only at a time
+- most likely this is due to the fact that it is serving 837 times as much data
+  per request as before (3347.5 / 4)
+- if that would affect performance directly, linear and exclusively, it would
+  have been 837 times slower, but is actually only 71 times slower (2857 / 40)
+- this means, that performance didn't degrade, but rather that the previous
+  performance test looked overly optimistic since such a small amount of data
+was served each time
+
