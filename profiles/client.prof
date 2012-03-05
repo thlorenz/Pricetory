@@ -1,0 +1,153 @@
+	Mon Mar  5 08:14 2012 Time and Allocation Profiling Report  (Final)
+
+	   client +RTS -p -hc -RTS -c 10
+
+	total time  =        7.96 secs   (398 ticks @ 20 ms)
+	total alloc = 1,803,845,128 bytes  (excludes profiling overheads)
+
+COST CENTRE                    MODULE               %time %alloc
+
+genericRecv                    Contract.Protocol     80.7   91.0
+genericSend                    Contract.Protocol     18.1    2.4
+logd                           Network.TCPClient      0.0    2.3
+
+
+                                                                                               individual    inherited
+COST CENTRE              MODULE                                               no.    entries  %time %alloc   %time %alloc
+
+MAIN                     MAIN                                                   1           0   0.0    0.0   100.0  100.0
+ main                    Network.TCPClient                                    553           0   0.0    0.0    91.0   90.3
+  sockHandler            Network.TCPClient                                    555           9   0.0    0.0    91.0   90.3
+   fireRequest           Network.TCPClient                                    562       20069   0.3    0.1    90.2   88.2
+    logStats             Network.TCPClient                                    639         198   0.0    0.1     0.3    0.4
+     logi                Network.TCPClient                                    640         198   0.3    0.3     0.3    0.3
+      priority           System.Log.Handler.GrowlNotifyHandler                641         198   0.0    0.0     0.0    0.0
+    recvTicks            Network.TCPClient                                    601       20065   0.0    0.0    69.8   81.0
+     logt                Network.TCPClient                                    627       20060   0.0    0.0     0.0    0.0
+      tracing            Network.TCPClient                                    628       20060   0.0    0.0     0.0    0.0
+     recv                Contract.Protocol                                    602       20065   0.0    0.0    69.8   81.0
+      genericRecv        Contract.Protocol                                    603       40129  69.8   81.0    69.8   81.0
+    ackOK                Contract.Types                                       596       20065   0.0    0.0     0.0    0.0
+    recvReqAck           Network.TCPClient                                    591       20069   0.0    0.0     2.0    2.8
+     decodeRequestAck    Contract.Protocol                                    597       20065   0.0    0.0     0.0    0.6
+      decodeWord32s      Contract.Protocol                                    598       20065   0.0    0.5     0.0    0.5
+     logd                Network.TCPClient                                    595       20065   0.0    1.1     0.0    1.1
+     recv                Contract.Protocol                                    592       20069   0.0    0.0     2.0    1.1
+      genericRecv        Contract.Protocol                                    593       40137   2.0    1.1     2.0    1.1
+    sendReq              Network.TCPClient                                    564       40138   0.0    0.0    17.8    2.9
+     encodeRequest       Contract.Protocol                                    567       40138   0.0    0.6     0.0    0.7
+      reqSymbol          Contract.Types                                       571           0   0.0    0.0     0.0    0.0
+      reqStartOffset     Contract.Types                                       570           0   0.0    0.0     0.0    0.0
+      reqEndOffset       Contract.Types                                       569           0   0.0    0.0     0.0    0.0
+      reqInterval        Contract.Types                                       568           0   0.0    0.0     0.0    0.0
+     send                Contract.Protocol                                    565       20069   0.0    0.0    17.8    2.2
+      genericSend        Contract.Protocol                                    566       20069  17.8    2.2    17.8    2.2
+    logd                 Network.TCPClient                                    563       20069   0.0    1.1     0.0    1.1
+   getRandomRequests     Network.RandomRequestGenerator                       561           9   0.0    0.1     0.8    2.0
+    generateRequest      Network.RandomRequestGenerator                       572       20069   0.0    0.7     0.8    1.9
+     randSymbolCode      Network.RandomRequestGenerator                       576       20069   0.3    0.6     0.3    0.6
+     bndInterval         Network.RandomRequestGenerator                       575           0   0.0    0.0     0.0    0.0
+     randStartOffset     Network.RandomRequestGenerator                       574       20069   0.5    0.6     0.5    0.6
+     bndTimeSpan         Network.RandomRequestGenerator                       573       20069   0.0    0.0     0.0    0.0
+   initHandle            Network.TCPCommon                                    560           9   0.0    0.0     0.0    0.0
+   logi                  Network.TCPClient                                    556           9   0.0    0.0     0.0    0.0
+    priority             System.Log.Handler.GrowlNotifyHandler                557           9   0.0    0.0     0.0    0.0
+ CAF                     Network.TCPClient                                    538          63   0.0    0.0     9.0    9.7
+  statsLogFrequency      Network.TCPClient                                    629           1   0.0    0.0     0.0    0.0
+  sockHandler            Network.TCPClient                                    559           0   0.0    0.0     0.0    0.0
+  loggerName             Network.TCPClient                                    549           1   0.0    0.0     0.0    0.0
+  arguments              Network.TCPClient                                    545           1   0.0    0.0     0.0    0.0
+  main                   Network.TCPClient                                    544           4   0.0    0.0     9.0    9.7
+   sockHandler           Network.TCPClient                                    604           1   0.0    0.0     9.0    9.7
+    fireRequest          Network.TCPClient                                    609        2231   0.0    0.0     9.0    9.5
+     logStats            Network.TCPClient                                    642          22   0.0    0.0     0.0    0.0
+      logi               Network.TCPClient                                    643          22   0.0    0.0     0.0    0.0
+       priority          System.Log.Handler.GrowlNotifyHandler                644          22   0.0    0.0     0.0    0.0
+     recvTicks           Network.TCPClient                                    634        2230   0.0    0.0     8.3    8.7
+      logt               Network.TCPClient                                    637        2230   0.0    0.0     0.0    0.0
+       tracing           Network.TCPClient                                    638        2230   0.0    0.0     0.0    0.0
+      recv               Contract.Protocol                                    635        2230   0.0    0.0     8.3    8.7
+       genericRecv       Contract.Protocol                                    636        4460   8.3    8.7     8.3    8.7
+     ackOK               Contract.Types                                       631        2230   0.0    0.0     0.0    0.0
+     recvReqAck          Network.TCPClient                                    624        2231   0.0    0.0     0.5    0.3
+      decodeRequestAck   Contract.Protocol                                    632        2230   0.0    0.0     0.0    0.1
+       decodeWord32s     Contract.Protocol                                    633        2230   0.0    0.1     0.0    0.1
+      logd               Network.TCPClient                                    630        2230   0.0    0.1     0.0    0.1
+      recv               Contract.Protocol                                    625        2231   0.0    0.0     0.5    0.1
+       genericRecv       Contract.Protocol                                    626        4462   0.5    0.1     0.5    0.1
+     sendReq             Network.TCPClient                                    611        4462   0.0    0.0     0.3    0.3
+      encodeRequest      Contract.Protocol                                    614        4462   0.0    0.1     0.0    0.1
+       reqSymbol         Contract.Types                                       618           0   0.0    0.0     0.0    0.0
+       reqStartOffset    Contract.Types                                       617           0   0.0    0.0     0.0    0.0
+       reqEndOffset      Contract.Types                                       616           0   0.0    0.0     0.0    0.0
+       reqInterval       Contract.Types                                       615           0   0.0    0.0     0.0    0.0
+      send               Contract.Protocol                                    612        2231   0.0    0.0     0.3    0.2
+       genericSend       Contract.Protocol                                    613        2231   0.3    0.2     0.3    0.2
+     logd                Network.TCPClient                                    610        2231   0.0    0.1     0.0    0.1
+    getRandomRequests    Network.RandomRequestGenerator                       608           1   0.0    0.0     0.0    0.2
+     generateRequest     Network.RandomRequestGenerator                       619        2231   0.0    0.1     0.0    0.2
+      randSymbolCode     Network.RandomRequestGenerator                       623        2231   0.0    0.1     0.0    0.1
+      bndInterval        Network.RandomRequestGenerator                       622           0   0.0    0.0     0.0    0.0
+      randStartOffset    Network.RandomRequestGenerator                       621        2231   0.0    0.1     0.0    0.1
+      bndTimeSpan        Network.RandomRequestGenerator                       620        2231   0.0    0.0     0.0    0.0
+    initHandle           Network.TCPCommon                                    607           1   0.0    0.0     0.0    0.0
+    logi                 Network.TCPClient                                    605           1   0.0    0.0     0.0    0.0
+     priority            System.Log.Handler.GrowlNotifyHandler                606           1   0.0    0.0     0.0    0.0
+   port                  Network.TCPClient                                    554           2   0.0    0.0     0.0    0.0
+   host                  Network.TCPClient                                    552           0   0.0    0.0     0.0    0.0
+   clients               Network.TCPClient                                    551           1   0.0    0.0     0.0    0.0
+   initLogger            Network.TCPCommon                                    548           5   0.0    0.0     0.0    0.0
+    growlNotifyHandler   System.Log.Handler.GrowlNotifyHandler                550           1   0.0    0.0     0.0    0.0
+     growlLoggerPriority Network.TCPCommon                                    558           1   0.0    0.0     0.0    0.0
+   loggingPriority       Network.TCPClient                                    547           0   0.0    0.0     0.0    0.0
+   arguments             Network.TCPClient                                    546           0   0.0    0.0     0.0    0.0
+ CAF                     Data.Typeable                                        536          19   0.0    0.0     0.0    0.0
+ CAF                     GHC.IO.Exception                                     530          19   0.0    0.0     0.0    0.0
+ CAF                     GHC.Num                                              528           1   0.0    0.0     0.0    0.0
+ CAF                     GHC.Float                                            515           7   0.0    0.0     0.0    0.0
+ CAF                     GHC.Exception                                        512           4   0.0    0.0     0.0    0.0
+ CAF                     Text.Read.Lex                                        504           4   0.0    0.0     0.0    0.0
+ CAF                     GHC.Int                                              500           2   0.0    0.0     0.0    0.0
+ CAF                     Data.HashTable                                       476           3   0.0    0.0     0.0    0.0
+ CAF                     GHC.IO.Handle.FD                                     474           2   0.0    0.0     0.0    0.0
+ CAF                     GHC.IO.FD                                            458           4   0.0    0.0     0.0    0.0
+ CAF                     GHC.Conc.Sync                                        447           3   0.0    0.0     0.0    0.0
+ CAF                     GHC.IO.Encoding.Iconv                                435           2   0.0    0.0     0.0    0.0
+ CAF                     GHC.Conc.Signal                                      428           1   0.0    0.0     0.0    0.0
+ CAF                     System.Log                                           417           8   0.0    0.0     0.0    0.0
+ CAF                     Data.Fixed                                           398           3   0.0    0.0     0.0    0.0
+ CAF                     Data.Time.Clock.POSIX                                396           2   0.0    0.0     0.0    0.0
+ CAF                     System.Log.Logger                                    371           1   0.0    0.0     0.0    0.0
+ CAF                     Network.RandomRequestGenerator                       347          20   0.0    0.0     0.0    0.0
+  oneHourProb            Network.RandomRequestGenerator                       590           1   0.0    0.0     0.0    0.0
+  oneMinProb             Network.RandomRequestGenerator                       589           1   0.0    0.0     0.0    0.0
+  oneSecProb             Network.RandomRequestGenerator                       588           1   0.0    0.0     0.0    0.0
+  bounds                 Network.RandomRequestGenerator                       587           1   0.0    0.0     0.0    0.0
+  generateRequest        Network.RandomRequestGenerator                       586           0   0.0    0.0     0.0    0.0
+  entireDataSecs         Network.RandomRequestGenerator                       579           1   0.0    0.0     0.0    0.0
+  instruments            Network.RandomRequestGenerator                       578           1   0.0    0.0     0.0    0.0
+  randSymbolCode         Network.RandomRequestGenerator                       577           0   0.0    0.0     0.0    0.0
+ CAF                     Contract.Constants                                   346           6   0.0    0.0     0.0    0.0
+  daysPerYear            Contract.Constants                                   585           1   0.0    0.0     0.0    0.0
+  hoursPerDay            Contract.Constants                                   584           1   0.0    0.0     0.0    0.0
+  minutesPerHour         Contract.Constants                                   583           1   0.0    0.0     0.0    0.0
+  secondsPerMinute       Contract.Constants                                   582           1   0.0    0.0     0.0    0.0
+  secondsPerHour         Contract.Constants                                   581           1   0.0    0.0     0.0    0.0
+  secondsPerDay          Contract.Constants                                   580           1   0.0    0.0     0.0    0.0
+ CAF                     Contract.Types                                       345           1   0.0    0.0     0.0    0.0
+  wordSize               Contract.Types                                       594           1   0.0    0.0     0.0    0.0
+ CAF                     Data.ByteString.Lazy                                 342           2   0.0    0.0     0.0    0.0
+ CAF                     System.Random                                        335           1   0.0    0.0     0.0    0.0
+ CAF                     Contract.Protocol                                    332           2   0.0    0.0     0.0    0.0
+  valid                  Contract.Protocol                                    600           1   0.0    0.0     0.0    0.0
+  decodeWord32s          Contract.Protocol                                    599           0   0.0    0.0     0.0    0.0
+ CAF                     Data.Binary.Get                                      330           3   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Implicit.Global               301           3   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Implicit.Reader               298           2   0.0    0.0     0.0    0.0
+ CAF                     Data.Generics.Any.Prelude                            297           2   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Explicit                      294           6   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Explicit.Help                 281           1   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Implicit.Ann                  279           4   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Annotate                      278           1   0.0    0.0     0.0    0.0
+ CAF                     Network                                              274           1   0.0    0.0     0.0    0.0
+ CAF                     Network.BSD                                          273           1   0.0    0.0     0.0    0.0

@@ -1,0 +1,132 @@
+	Mon Mar  5 08:14 2012 Time and Allocation Profiling Report  (Final)
+
+	   server +RTS -p -hc -RTS
+
+	total time  =      137.88 secs   (6894 ticks @ 20 ms)
+	total alloc = 44,340,671,080 bytes  (excludes profiling overheads)
+
+COST CENTRE                    MODULE               %time %alloc
+
+genericSend                    Contract.Protocol     97.2   76.9
+sampleByteStrings              Data.Sampler           1.1    1.5
+provide                        Data.Provider          1.1   13.2
+processRequest                 Network.TCPServer      0.4    8.2
+
+
+                                                                                               individual    inherited
+COST CENTRE              MODULE                                               no.    entries  %time %alloc   %time %alloc
+
+MAIN                     MAIN                                                   1           0   0.0    0.0   100.0  100.0
+ main                    Network.TCPServer                                    595           0   0.0    0.0    98.9   98.5
+  sockHandler            Network.TCPServer                                    596           0   0.0    0.0    98.9   98.5
+   commandProcessor      Network.TCPServer                                    597       44590   0.0    0.0    98.9   98.5
+    handleWellformedRequest Network.TCPServer                                    603       22299   0.0    0.0    98.7   98.4
+     processRequest      Network.TCPServer                                    615       23895   0.4    8.2    98.3   98.3
+      provideFromFile    Data.Provider                                        640        1600   0.0    0.0     0.0    0.0
+      codeToSymbol       Contract.Symbols                                     639        1600   0.0    0.0     0.0    0.0
+      getFullSymbolDataPath Contract.Protocol                                    638        1600   0.0    0.0     0.0    0.0
+      provide            Data.Provider                                        621       62070   1.1   13.2     1.1   13.2
+       validIndex        Data.Provider                                        637       41380   0.0    0.0     0.0    0.0
+       getIndexForTime   Data.Provider                                        636       41380   0.0    0.0     0.0    0.0
+       timeOffset        Contract.Types                                       635       20690   0.0    0.0     0.0    0.0
+       decodeTick        Contract.Protocol                                    632       20690   0.0    0.0     0.0    0.0
+        tickFromWords    Contract.Protocol                                    634       20690   0.0    0.0     0.0    0.0
+        decodeWord32s    Contract.Protocol                                    633       20690   0.0    0.0     0.0    0.0
+       negotiateUp       Data.Provider                                        629       20690   0.0    0.0     0.0    0.0
+       historicalTickDataBySymbol Contract.Types                                       623       20690   0.0    0.0     0.0    0.0
+       tickDataByInterval Contract.Types                                       622           0   0.0    0.0     0.0    0.0
+      ptdByteStrings     Contract.Types                                       620       20690   0.0    0.0     0.0    0.0
+      send               Contract.Protocol                                    618       22290   0.0    0.0    96.7   76.8
+       genericSend       Contract.Protocol                                    619       22290  96.7   76.8    96.7   76.8
+      logd               Network.TCPServer                                    617       22295   0.0    0.0     0.0    0.0
+     ackOK               Contract.Types                                       614       22295   0.0    0.0     0.0    0.0
+     encodeRequestAck    Contract.Protocol                                    611       44590   0.0    0.0     0.0    0.0
+     codeToSymbol        Contract.Symbols                                     608       22295   0.0    0.0     0.0    0.0
+     send                Contract.Protocol                                    605       22295   0.0    0.0     0.5    0.1
+      genericSend        Contract.Protocol                                    606       22295   0.5    0.1     0.5    0.1
+     logd                Network.TCPServer                                    604       22299   0.0    0.0     0.0    0.0
+    decodeRequest        Contract.Protocol                                    600       22299   0.0    0.0     0.0    0.1
+     requestFromWord32s  Contract.Protocol                                    602       22299   0.0    0.0     0.0    0.0
+     decodeWord32s       Contract.Protocol                                    601       22299   0.0    0.1     0.0    0.1
+    recv                 Contract.Protocol                                    598       22300   0.0    0.0     0.2    0.1
+     genericRecv         Contract.Protocol                                    599       44599   0.2    0.1     0.2    0.1
+ CAF                     Network.TCPServer                                    552          67   0.0    0.0     1.1    1.5
+  processRequest         Network.TCPServer                                    616           0   0.0    0.0     0.0    0.0
+  handleWellformedRequest Network.TCPServer                                    607           0   0.0    0.0     0.0    0.0
+  sockHandler            Network.TCPServer                                    593           0   0.0    0.0     0.0    0.0
+  loggerName             Network.TCPServer                                    564           1   0.0    0.0     0.0    0.0
+  arguments              Network.TCPServer                                    559           1   0.0    0.0     0.0    0.0
+  main                   Network.TCPServer                                    558           3   0.0    0.0     1.1    1.5
+   sockHandler           Network.TCPServer                                    590          11   0.0    0.0     0.0    0.0
+    initHandle           Network.TCPCommon                                    594          10   0.0    0.0     0.0    0.0
+    logi                 Network.TCPServer                                    591          10   0.0    0.0     0.0    0.0
+     priority            System.Log.Handler.GrowlNotifyHandler                592          10   0.0    0.0     0.0    0.0
+   host                  Network.TCPServer                                    589           1   0.0    0.0     0.0    0.0
+   getWorldOfTickData    Data.Sampler                                         570           5   0.0    0.0     1.1    1.5
+    tickDataSymbol       Contract.Types                                       624           0   0.0    0.0     0.0    0.0
+    getHistoricalTickData Data.Sampler                                         572           1   0.0    0.0     1.1    1.5
+     sampleAtInterval    Utils.Array                                          631           2   0.0    0.0     0.0    0.0
+     symbol              Contract.Types                                       588           0   0.0    0.0     0.0    0.0
+     readTickDataAtInterval Data.Sampler                                         573           2   0.0    0.0     1.1    1.5
+      points             Contract.Types                                       581           1   0.0    0.0     0.0    0.0
+      sampleByteStrings  Data.Sampler                                         579           1   1.1    1.5     1.1    1.5
+      readHeader         Data.Sampler                                         576           2   0.0    0.0     0.0    0.0
+       decodeFileHeader  Contract.Protocol                                    582           1   0.0    0.0     0.0    0.0
+        headerFromWord32s Contract.Protocol                                    586           1   0.0    0.0     0.0    0.0
+        decodeWord32s    Contract.Protocol                                    583           1   0.0    0.0     0.0    0.0
+    getFullSymbolDataPath Contract.Protocol                                    571           1   0.0    0.0     0.0    0.0
+   dataFolder            Network.TCPServer                                    569           0   0.0    0.0     0.0    0.0
+   logi                  Network.TCPServer                                    566           2   0.0    0.0     0.0    0.0
+    priority             System.Log.Handler.GrowlNotifyHandler                567           2   0.0    0.0     0.0    0.0
+   initLogger            Network.TCPCommon                                    563           5   0.0    0.0     0.0    0.0
+    growlNotifyHandler   System.Log.Handler.GrowlNotifyHandler                565           1   0.0    0.0     0.0    0.0
+     growlLoggerPriority Network.TCPCommon                                    568           1   0.0    0.0     0.0    0.0
+   loggingPriority       Network.TCPServer                                    562           0   0.0    0.0     0.0    0.0
+   port                  Network.TCPServer                                    561           2   0.0    0.0     0.0    0.0
+   arguments             Network.TCPServer                                    560           0   0.0    0.0     0.0    0.0
+ CAF                     GHC.TopHandler                                       551           1   0.0    0.0     0.0    0.0
+ CAF                     Data.Typeable                                        550          19   0.0    0.0     0.0    0.0
+ CAF                     GHC.IO.Exception                                     544           4   0.0    0.0     0.0    0.0
+ CAF                     Text.Read.Lex                                        518           4   0.0    0.0     0.0    0.0
+ CAF                     GHC.Int                                              514           2   0.0    0.0     0.0    0.0
+ CAF                     Data.HashTable                                       490           3   0.0    0.0     0.0    0.0
+ CAF                     GHC.IO.Handle.FD                                     488           2   0.0    0.0     0.0    0.0
+ CAF                     GHC.IO.FD                                            472           3   0.0    0.0     0.0    0.0
+ CAF                     GHC.IO.Encoding.Iconv                                449           2   0.0    0.0     0.0    0.0
+ CAF                     GHC.Conc.Signal                                      442           1   0.0    0.0     0.0    0.0
+ CAF                     System.Log                                           432           8   0.0    0.0     0.0    0.0
+ CAF                     System.Log.Logger                                    386           1   0.0    0.0     0.0    0.0
+ CAF                     Contract.Types                                       359           3   0.0    0.0     0.0    0.0
+  tickSize               Contract.Types                                       580           1   0.0    0.0     0.0    0.0
+  wordSize               Contract.Types                                       578           1   0.0    0.0     0.0    0.0
+  fileHeaderSize         Contract.Types                                       577           1   0.0    0.0     0.0    0.0
+ CAF                     Contract.RequestAckMessages                          358           1   0.0    0.0     0.0    0.0
+  validMsgCode           Contract.RequestAckMessages                          613           1   0.0    0.0     0.0    0.0
+ CAF                     Data.ByteString.Lazy                                 356           2   0.0    0.0     0.0    0.0
+ CAF                     Contract.Protocol                                    350           4   0.0    0.0     0.0    0.0
+  valid                  Contract.Protocol                                    612           1   0.0    0.0     0.0    0.0
+  magicNumber            Contract.Protocol                                    585           1   0.0    0.0     0.0    0.0
+  decodeWord32s          Contract.Protocol                                    584           0   0.0    0.0     0.0    0.0
+  getFullSymbolDataPath  Contract.Protocol                                    575           0   0.0    0.0     0.0    0.0
+ CAF                     Contract.Constants                                   349           5   0.0    0.0     0.0    0.0
+  hoursPerDay            Contract.Constants                                   628           1   0.0    0.0     0.0    0.0
+  secondsPerDay          Contract.Constants                                   627           1   0.0    0.0     0.0    0.0
+  minutesPerHour         Contract.Constants                                   626           1   0.0    0.0     0.0    0.0
+  secondsPerHour         Contract.Constants                                   625           1   0.0    0.0     0.0    0.0
+  secondsPerMinute       Contract.Constants                                   587           1   0.0    0.0     0.0    0.0
+ CAF                     Data.Binary.Get                                      347           2   0.0    0.0     0.0    0.0
+ CAF                     Contract.Symbols                                     313          14   0.0    0.0     0.0    0.0
+  symbols                Contract.Symbols                                     610           1   0.0    0.0     0.0    0.0
+  codeToSymbol           Contract.Symbols                                     609           2   0.0    0.0     0.0    0.0
+  eurusd                 Contract.Symbols                                     574           1   0.0    0.0     0.0    0.0
+ CAF                     Data.Sampler                                         312           1   0.0    0.0     0.0    0.0
+  getHistoricalTickData  Data.Sampler                                         630           0   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Implicit.Global               308           2   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Implicit.Reader               305           1   0.0    0.0     0.0    0.0
+ CAF                     Data.Generics.Any.Prelude                            304           2   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Explicit                      301           6   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Explicit.Help                 288           1   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Implicit.Ann                  286           4   0.0    0.0     0.0    0.0
+ CAF                     System.Console.CmdArgs.Annotate                      285           1   0.0    0.0     0.0    0.0
+ CAF                     Network                                              283           1   0.0    0.0     0.0    0.0
+ CAF                     Network.BSD                                          280           1   0.0    0.0     0.0    0.0
