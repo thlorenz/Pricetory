@@ -1,11 +1,16 @@
-module Data.Provider (provide) where
+module Data.Provider (provide, provideFromFile) where
 
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Map as Map
+
 import Text.Printf
+
+import System.IO (hSeek, Handle, SeekMode(..))
+
 import Data.Array (elems, ixmap, listArray, (!), bounds)
 import Data.List (sort)
 import Data.Maybe
+
 import Contract.Types
 import Contract.Protocol (decodeTick)
 import Control.Arrow ((>>>))
@@ -32,6 +37,12 @@ provide allTickData code fromTime toTime interval =
         tickDataForCode = tickDataByInterval . getAllHistTickDataForCode $ allTickData
         getAllHistTickDataForCode = fromJust . Map.lookup code . historicalTickDataBySymbol 
 
+provideFromFile :: TimeOffset -> TimeOffset -> Handle -> IO L.ByteString
+provideFromFile start end h = do
+    hSeek h AbsoluteSeek $ fromIntegral start
+    L.hGet h bytesToGet 
+    where bytesToGet = fromIntegral (end - start)
+    
 validIndex :: (Int, Int) -> Int -> Int
 validIndex (minIndex, maxIndex) index = max minIndex . min maxIndex $ index 
 

@@ -15,7 +15,7 @@ import Network (connectTo, accept, PortID(..), withSocketsDo)
 
 import Control.Exception (finally, catch, Exception(..))
 import Control.Concurrent (forkIO)
-import Control.Monad (liftM, forever)
+import Control.Monad (liftM, when)
 
 import Data.Word (Word32)
 import Data.Time.Clock (getCurrentTime, diffUTCTime, UTCTime)
@@ -37,14 +37,16 @@ data Arguments = Arguments { host            :: String
 arguments = Arguments
     { host = "localhost" &= typ "String" &= help "Host name of server to connect to."
     , port = 3000        &= typ "Int"    &= help "Port on which to connect to server."
-    , loggingPriority = "debug" &= typ "String" &= help "The priority level to log on."
+    , loggingPriority = "info" &= typ "String" &= help "The priority level to log on."
     , clients = 1        &= typ "Int"    &= help "Number of concurrent clients to fire up."
     } &= summary "Pricetory TCP Client version 0.0.1"
 
+tracing = False
 loggerName = "Client"
 logd = debugM loggerName
 logi = infoM  loggerName
 loge = errorM loggerName
+logt msg = when tracing (logd msg)
 
 main :: IO ()
 main = withSocketsDo $ do
@@ -83,7 +85,7 @@ fireRequest h clientId reqNum (req:reqs) startTime = do
     ack <- recvReqAck h
     if (ackOK ack == valid) then recvTicks h else return ()
 
-    if (reqNum == 1000)
+    if (reqNum == 100)
         then logStats clientId reqNum startTime 
              >>  getCurrentTime 
              >>= fireRequest h clientId 0 reqs
@@ -94,7 +96,7 @@ logStats clientId reqNum startTime = do
     currentTime <- getCurrentTime
     let secs = diffUTCTime currentTime startTime
     logi $ "Client " ++ show clientId ++ ": " ++ show reqNum ++ 
-           " request where fullfilled in " ++ show secs ++ " seconds."
+           " request where fullfilled in " ++ show secs ++ "."
     
 
 sendReq h = send h . encodeRequest
@@ -104,7 +106,7 @@ recvReqAck h = do
     logd $ show ack
     return ack
 
-recvTicks h = recv h >>= logd . show . decodeTicks
+recvTicks h = recv h >>= logt . show . decodeTicks
 
 {- Smarter way to forkIO
 spawnThread :: IO () -> IO ThreadId

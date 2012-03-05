@@ -12,7 +12,7 @@ import Control.Monad (liftM)
 
 import Contract.Types
 import Contract.Constants
-import Contract.Protocol (decodeFileHeader, decodeTick, fileHeaderSize)
+import Contract.Protocol (decodeFileHeader, decodeTick, fileHeaderSize, getFullSymbolDataPath)
 import Utils.Array (sampleAtInterval)
 
 -- | TODO: handle Nothing which signifies an exception
@@ -34,9 +34,6 @@ sampleByteStrings h maxPoint interval pointSize =
                    hSeek h RelativeSeek $ fromIntegral skipSize
                    sample (remainingPoints - 1) (x:xs)
               else return $ reverse xs
-
-getFullSymbolDataPath :: FilePath -> Symbol -> FilePath
-getFullSymbolDataPath dataDir symbolName = dataDir ++ "/" ++ symbolName ++ ".bin"
 
 readTickDataAtInterval :: FilePath -> TimeInterval -> IO ((Array Int L.ByteString), Header)
 readTickDataAtInterval fullPath interval = do

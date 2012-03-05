@@ -7,21 +7,29 @@ import qualified Data.ByteString.Lazy as L
 import Network (listenOn, accept, PortID(..), Socket, withSocketsDo)
 
 import System.Console.CmdArgs
-import System.IO (Handle)
+import System.IO
 
-import Import.SystemLog 
+import Data.Maybe (fromJust)
 
 import Control.Concurrent (forkIO)
 import Control.Monad (when)
 
 import Data.Sampler (getWorldOfTickData)
 
-import Contract.Protocol (send, recv, requestSize, decodeRequest, encodeRequestAck, invalid, valid) 
+import Contract.Protocol ( getFullSymbolDataPath  
+                         , send
+                         , recv
+                         , requestSize
+                         , decodeRequest
+                         , encodeRequestAck
+                         , invalid
+                         , valid
+                         ) 
 import Contract.Types
 import Contract.Symbols
 import Contract.RequestAckMessages
 
-import Data.Provider (provide)
+import Data.Provider (provide, provideFromFile)
 
 import Network.TCPCommon
 import Import.SystemLog
@@ -36,7 +44,7 @@ arguments = Arguments
     { host = "localhost" &= typ "String" &= help "Host server is running on"
     , port = 3000        &= typ "Int"    &= help "Port server is listening on for incoming connections"
     , dataFolder = defFolder &= typ "FilePath" &= help "The folder in which the data resides"
-    , loggingPriority = "debug" &= typ "String" &= help "The priority level to log on"
+    , loggingPriority = "info" &= typ "String" &= help "The priority level to log on"
     } &= summary "Pricetory TCP Server version 0.0.1"
     where defFolder = "/Users/thlorenz/dev/data/Pricetory"
 
@@ -56,44 +64,44 @@ main = withSocketsDo $ do
 
     logi $ "Listening on [" ++ (host args) ++ ":" ++ (show $ port args) ++ "]."
 
-    sockHandler sock worldOfTickData 
+    sockHandler sock worldOfTickData (dataFolder args)
 
-sockHandler :: Socket -> HistoricalTickDataMap -> IO ()
-sockHandler sock world = do
+sockHandler :: Socket -> HistoricalTickDataMap -> FilePath -> IO ()
+sockHandler sock world dataFolder = do
     (handle, host, port) <- accept sock
     logi $ "Accepted [" ++ (show host) ++ ":" ++ (show port) ++ "]."
     
     initHandle handle
 
-    forkIO $ commandProcessor handle world
+    forkIO $ commandProcessor handle world dataFolder
 
     -- handle more incoming connections
-    sockHandler sock world
+    sockHandler sock world dataFolder
 
-commandProcessor :: Handle -> HistoricalTickDataMap -> IO () 
-commandProcessor h world = do
+commandProcessor :: Handle -> HistoricalTickDataMap -> FilePath -> IO () 
+commandProcessor h world dataFolder = do
     bytes <- recv h
 
     when (bytes /= L.empty) $ do
         let mbReq = decodeRequest bytes
         case mbReq of
-            Just req    -> handleWellformedRequest h world req
+            Just req    -> handleWellformedRequest h world dataFolder req
             Nothing     -> handleMalformedRequest h bytes
     
     -- recurse to execute several commands over same connection
-    commandProcessor h world
+    commandProcessor h world dataFolder
 
 handleMalformedRequest :: Handle -> L.ByteString -> IO ()
 handleMalformedRequest h reqBytes =
     loge ("Invalid request format" ++ (show reqBytes)) >>
     send h (encodeRequestAck $ RequestAck invalid invalidFormatMsgCode)
 
-handleWellformedRequest :: Handle -> HistoricalTickDataMap -> Request -> IO ()
-handleWellformedRequest h world req = do 
+handleWellformedRequest :: Handle -> HistoricalTickDataMap -> FilePath -> Request -> IO ()
+handleWellformedRequest h world dataFolder req = do 
     logd  $ "Handling " ++ (show req)
     let ack = requestAck req
     send h (encodeRequestAck ack)
-    when (ackOK ack == valid) $ processRequest h world req
+    when (ackOK ack == valid) $ processRequest h world dataFolder req
     where requestAck (Request symCode start end itrvl)
             | start >= end  = RequestAck invalid invalidOffsetsMsgCode 
             | itrvl <= 0    = RequestAck invalid invalidIntervalMsgCode
@@ -101,12 +109,19 @@ handleWellformedRequest h world req = do
                 RequestAck invalid invalidSymbolMsgCode
             | otherwise     = RequestAck valid   validMsgCode
 
-processRequest :: Handle -> HistoricalTickDataMap -> Request -> IO ()
-processRequest h world (Request symCode start end itrvl) = do
-    let dta = provide world symCode start end itrvl
-    logd $ show dta
-    
-    send h (L.concat $ ptdByteStrings dta)
+processRequest :: Handle -> HistoricalTickDataMap -> FilePath -> Request -> IO ()
+processRequest h world dataFolder (Request symCode start end itrvl) =
+    if itrvl /= 1
+       then do 
+            let dta = provide world symCode start end itrvl
+            logd $ show dta
+            send h (L.concat $ ptdByteStrings dta)
+       else do 
+            logd $ "Providing from File from " ++ show start ++ " to " ++ show end ++ "."
+            openBinaryFile filePath ReadMode >>= provideFromFile start end >>=  send h
+       where filePath = 
+                getFullSymbolDataPath dataFolder . fromJust . codeToSymbol $ symCode
+            
  
 
 {- Comments

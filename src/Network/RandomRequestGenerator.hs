@@ -27,13 +27,13 @@ data Bound = Bound
     Max Read Ticks: 900         600         8750
     Faults to Disk: N           N           Y -}
 
-bounds =  -- (replicate oneSecProb secondsBnds) ++
+bounds =   (replicate oneSecProb secondsBnds) ++
            (replicate oneMinProb minutesBnds) ++
            (replicate oneHourProb hoursBnds)
     where
         secondsBnds = Bound (1 :: Word32) (15 * secondsPerMinute)
         minutesBnds = Bound secondsPerMinute (600 * secondsPerMinute)
-        hoursBnds   = Bound secondsPerHour (daysPerYear * hoursPerDay)
+        hoursBnds   = Bound secondsPerHour (daysPerYear * hoursPerDay * secondsPerHour)
 
 getRandomRequests :: IO [Request]
 getRandomRequests = liftM getRequestStream $ getStdGen

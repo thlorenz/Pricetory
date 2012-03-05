@@ -1,4 +1,5 @@
 module Contract.Protocol ( magicNumber
+                         , getFullSymbolDataPath 
                          , headerSize
                          , requestSize
                          , requestAckSize
@@ -39,6 +40,9 @@ magicNumber = 0x54484f52 :: Word32
 
 invalid =  0 :: Word32
 valid   =  1 :: Word32
+
+getFullSymbolDataPath :: FilePath -> Symbol -> FilePath
+getFullSymbolDataPath dataDir symbolName = dataDir ++ "/" ++ symbolName ++ ".bin"
 
 -- | Sends length of byte string to send followed by that byte string
 genericSend :: (Handle -> L.ByteString -> IO ()) -> Handle -> L.ByteString -> IO ()
