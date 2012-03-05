@@ -1,0 +1,8 @@
+#!/bin/sh
+
+script_dir=$(dirname $0)
+
+cd $script_dir/../src/
+
+ghc -o server Network/TCPServer.hs -main-is Network.TCPServer.main
+ghc -o client Network/TCPClient.hs -main-is Network.TCPClient.main

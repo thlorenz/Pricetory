@@ -8,3 +8,4 @@ find . -name "*.o" -exec rm {} \;
 find . -name "*.hi" -exec rm {} \;
 
 rm -rf ../dist
+rm ../build/*
