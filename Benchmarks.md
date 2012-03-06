@@ -53,7 +53,7 @@ This shows that on average 3347.5 ticks are served each time
   performance test looked overly optimistic since such a small amount of data
 was served each time
 
-### Using LineBuffering on Server and Client
+### Using LineBuffering on Server and Client (Send and Receive)
 - ran 120 concurrent clients
 - served 100 requests in 280s (small improvement)
 
