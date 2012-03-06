@@ -7,10 +7,10 @@ import Import.SystemLog
 
 import Data.Char
 
-growlLoggerPriority = INFO
+growlLoggerPriority = EMERGENCY
 
-initHandle ::  Handle -> IO ()
-initHandle h = hSetBuffering h BlockBuffering >> hSetBinaryMode h True
+initHandle ::  Handle -> BufferMode -> IO ()
+initHandle h bufmode = hSetBuffering h bufmode >> hSetBinaryMode h True
 
 initLogger loggerName p = do
     updateGlobalLogger loggerName (setLevel prio)

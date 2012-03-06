@@ -7,7 +7,7 @@ import Prelude hiding (catch)
 import qualified Data.ByteString.Lazy as L;
 
 import System.Console.CmdArgs
-import System.IO (Handle, FilePath, hClose)
+import System.IO (Handle, FilePath, hClose, BufferMode(..))
 import System.IO.Error (isEOFError)
 
 import Network.Socket (HostName)
@@ -76,7 +76,7 @@ main = withSocketsDo $ do
 sockHandler :: Handle -> Int -> IO ()
 sockHandler h clientId = do
     logi $ "Client: " ++ show clientId ++ " got socket connection."
-    initHandle h
+    initHandle h LineBuffering
     randomRequests <- getRandomRequests 
     getCurrentTime >>= fireRequest h clientId 0 randomRequests
 

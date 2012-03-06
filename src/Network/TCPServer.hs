@@ -71,7 +71,7 @@ sockHandler sock world dataFolder = do
     (handle, host, port) <- accept sock
     logi $ "Accepted [" ++ (show host) ++ ":" ++ (show port) ++ "]."
     
-    initHandle handle
+    initHandle handle LineBuffering -- (BlockBuffering $ Just 4096)
 
     forkIO $ commandProcessor handle world dataFolder
 

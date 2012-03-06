@@ -29,7 +29,7 @@ import Data.Word (Word32)
 
 import Control.Monad (liftM)
 
-import System.IO (Handle)
+import System.IO (hSetBuffering, hFlush, BufferMode(..), Handle)
 
 import Contract.Types
 import Contract.Constants
@@ -46,7 +46,10 @@ getFullSymbolDataPath dataDir symbolName = dataDir ++ "/" ++ symbolName ++ ".bin
 
 -- | Sends length of byte string to send followed by that byte string
 genericSend :: (Handle -> L.ByteString -> IO ()) -> Handle -> L.ByteString -> IO ()
-genericSend put h bs = put h bytesToSend   
+genericSend put h bs = do
+    hSetBuffering h $ BlockBuffering . Just . fromIntegral . L.length $ bytesToSend
+    put h bytesToSend   
+    hFlush h
     where len = encode ((fromIntegral . L.length) bs :: Word32)
           bytesToSend = L.concat [len, bs] 
 
