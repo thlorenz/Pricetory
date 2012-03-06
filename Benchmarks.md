@@ -57,3 +57,11 @@ was served each time
 - ran 120 concurrent clients
 - served 100 requests in 280s (small improvement)
 
+### Using BlockBuffering on Send Only
+- ran 120 concurrent clients
+- served 100 requests in 80s (bigger improvement)
+
+### Using BlockBuffering on Send and Receive
+- ran 120 concurrent clients
+- served 100 requests in 65s
+

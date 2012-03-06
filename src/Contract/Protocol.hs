@@ -58,9 +58,13 @@ send = genericSend L.hPut
 
 -- | Receives length of byte string and then the byte string itself
 genericRecv :: (Handle -> Int -> IO L.ByteString) -> Handle -> IO L.ByteString
-genericRecv get h = len >>= get h
-    where len = liftM (fromIntegral . decodeWord32) . get h $ wordSize
-          decodeWord32 = decode :: L.ByteString -> Word32
+genericRecv get h = do
+    hSetBuffering h LineBuffering
+    len <- liftM (fromIntegral . decodeWord32) . get h $ wordSize
+
+    hSetBuffering h (BlockBuffering . Just $ len)
+    get h len
+    where decodeWord32 = decode :: L.ByteString -> Word32
 
 recv :: Handle -> IO L.ByteString
 recv = genericRecv L.hGet
